@@ -1,0 +1,75 @@
+{
+  "titel": "Laufserie Nord-Münsterland 2019",
+  "laeufe": [
+    {
+      "name": "teekottenlauf",
+      "titel": "Salvus-Teekottenlauf",
+      "user": "teekottenlauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      }]
+    }, {
+      "name": "altstadtlauf",
+      "titel": "Steinfurter Altstadt Abendlauf",
+      "user": "allerheiligenlauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      }]
+    }, {
+      "name": "neuenkirchenlauf",
+      "titel": "VR-Bank-Lauf<br>“Rund um den Offlumer See”",
+      "user": "vlneuenkirchen-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      }]
+    }, {
+      "name": "aaseelauf",
+      "titel": "Abendlauf<br>„Rund um den Aasee“",
+      "user": "aaseelauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      }]
+    }, {
+      "name": "berglauf",
+      "titel": "Altenberger<br>Volksbank-Berglauf",
+      "user": "berglauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      },{
+        "name":"5km",
+        "distanz":"5000"
+      }]
+    }, {
+      "name": "kirmeslauf",
+      "titel": "Saerbecker<br>Kirmeslauf",
+      "user": "kirmeslauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz":"10000"
+      }]
+    }, {
+      "name": "allerheiligenlauf",
+      "titel": "35. Allerheiligenlauf<br>Nordwalde",
+      "user": "allerheiligenlauf-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz" : "10000"
+      }]
+    }, {
+      "name": "adventslauf",
+      "titel": "Mesumer<br>Adventslauf",
+      "user": "adventslaufmesum-nml",
+      "strecken" : [{
+        "name":"10km",
+        "distanz" : "10000"
+      }]
+    }
+  ],
+  "db-grants":"true",
+  "upload-folder":"/nas/html/uploads/"
+}

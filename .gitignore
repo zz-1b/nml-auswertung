@@ -1,0 +1,14 @@
+# vertrauliches
+passworte
+.htpasswd
+dblogin_details.mk
+
+#generierte Dateien
+*.csv
+adm/*
+createdb.sql
+
+# automatisch heruntergeladene Fremdpakete
+3rdparty/*
+ajaxcrud.zip
+fpdf*.tgz
