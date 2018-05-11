@@ -21,6 +21,34 @@ class SerienWertung
 
     echo $teilnehmer." Serienteilnehmer <p>";
 
+    $jahr=ERSETZEJAHR;
+    $this->dbh->exec(
+      'UPDATE serienteilnehmer
+       SET altersklasse=CONCAT(UPPER(geschlecht), CASE
+       WHEN '.$jahr.'-jahrgang<8 THEN \'KU8\'
+       WHEN '.$jahr.'-jahrgang<10 THEN \'KU10\'
+       WHEN '.$jahr.'-jahrgang<12 THEN \'KU12\'
+       WHEN '.$jahr.'-jahrgang<14 THEN \'JU14\'
+       WHEN '.$jahr.'-jahrgang<16 THEN \'JU16\'
+       WHEN '.$jahr.'-jahrgang<18 THEN \'JU18\'
+       WHEN '.$jahr.'-jahrgang<20 THEN \'JU20\'
+       WHEN '.$jahr.'-jahrgang<23 THEN \'U23\'
+       WHEN '.$jahr.'-jahrgang>=85 THEN \'85\'
+       WHEN '.$jahr.'-jahrgang>=80 THEN \'80\'
+       WHEN '.$jahr.'-jahrgang>=75 THEN \'75\'
+       WHEN '.$jahr.'-jahrgang>=70 THEN \'60\'
+       WHEN '.$jahr.'-jahrgang>=65 THEN \'55\'
+       WHEN '.$jahr.'-jahrgang>=60 THEN \'60\'
+       WHEN '.$jahr.'-jahrgang>=55 THEN \'55\'
+       WHEN '.$jahr.'-jahrgang>=50 THEN \'50\'
+       WHEN '.$jahr.'-jahrgang>=45 THEN \'45\'
+       WHEN '.$jahr.'-jahrgang>=40 THEN \'40\'
+       WHEN '.$jahr.'-jahrgang>=35 THEN \'35\'
+       WHEN '.$jahr.'-jahrgang>=30 THEN \'30\'
+       ELSE \'\'
+       END )');
+
+
     $this->dbh->exec('DELETE FROM letztedatensaetze');
     $ds = $this->dbh->exec(
     'INSERT INTO letztedatensaetze(veranstaltungsid, datensatzid)
@@ -75,13 +103,12 @@ class SerienWertung
       SET serienteilnehmer.bonusteilnahmen=teilnahmezaehlung.teilnahmen-4
       WHERE serienteilnehmer.tnid=teilnahmezaehlung.tnid and teilnahmezaehlung.teilnahmen>4');
 
+    # Berechnung der Serien-Zeit mit 45 Sekunden Bonus ab dem 5. Lauf - Achtung, SEC_TO_TIME und TIME_TO_SEC sind kein Standard-SQL
     $this->dbh->exec('DELETE FROM serienrangliste');
     $this->dbh->exec('INSERT INTO serienrangliste(tnid, serienzeit)
      SELECT t.tnid, SEC_TO_TIME(sum(TIME_TO_SEC(e.zeit)*e.inwertung)-t.teilnahmen*45) AS serienzeit
      FROM serienteilnehmer t, serieneinzelergebnisse e
      WHERE t.tnid=e.tnid GROUP BY t.tnid');
-
-#    $this->dbh->prepare("SELECT tnid FROM serieneinzelergebnisse")
   }
 
   function HTMLAUswertung()
