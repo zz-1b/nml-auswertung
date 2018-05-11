@@ -14,10 +14,13 @@ sub gen_db
 drop database ${dbname};
 CREATE DATABASE ${dbname} CHARACTER SET utf8;
 /*
- Datenbank/Modell für Laufergebnisse und Laufserien
+ Datenbank/Datenmodell für Laufergebnisse und Laufserien
 
  Serien bestehen aus vorgegebenen Veranstaltungen.
- Pro Veranstaltung gibt es Strecken mit Ergebnis-Ergebnisdatensätzen.
+ Pro Veranstaltung gibt es Strecken mit Ergebnisdatensätzen.
+
+ Die Tabellen beschreiben das Datenmodell entlang der Beziehungen zwischen
+ den modellierten Daten, ausgedrückt durch Fremdschlüsselbeziehungen.
 */
 USE ${dbname};
 
@@ -29,7 +32,11 @@ CREATE TABLE veranstaltungen
   PRIMARY KEY (veranstaltungsid)
 );
 
-
+/*
+ Hier sind verschiedene Distanzen in den Einzelveranstaltungen abgebildet.
+ Diese Tabelle erlaubt weitere Ansichten (z. B. Ergebnisse der Einzelveranstaltungen) der Datenbasis.
+ Für die Laufserienauswertung ist sie nicht zwingend nötig.
+*/
 CREATE TABLE strecken
 (
   streckenid INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,7 +46,11 @@ CREATE TABLE strecken
   FOREIGN KEY (veranstaltungsid) REFERENCES veranstaltungen(veranstaltungsid) ON DELETE CASCADE
 );
 
--- Hier ein Eintrag je hochgeladener Datei
+/*
+  In dieser Tabelle wird ein Eintrag mit Daten zum Hochladevorgang abgelegt, wenn
+  neue Ergebnislisten eingegeben werden.
+  Jede hochgeladene Liste gehört zu einer Distanz in einer Veranstaltung.
+*/
 CREATE TABLE datensaetze
 (
   datensatzid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -52,8 +63,8 @@ CREATE TABLE datensaetze
 );
 
 /*
-   Rohdaten von den teilnehmenden Vereinen
-   Personen in den hochzuladenden Tabellen müssen (incl. Verein)
+   Rohdaten der Ergebnislisten von den teilnehmenden Vereinen
+   Personen in den hochzuladenden Tabellen müssen in den vorgegebenen Attributen (incl. Verein)
    eindeutig sein, siehe Primärschlüsseldefinition.
 */
 CREATE TABLE ergebnisse
@@ -70,7 +81,11 @@ CREATE TABLE ergebnisse
  FOREIGN KEY (datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
 );
 
--- Generierte tabellen
+/*
+  Die folgenden Tabellen enthalten durch das Auswertungssystem aus den Eingaben berechnete Werte.
+
+  Die Tabelle 'serienteilnehmer' dient der Identifikation der Serienteilnehmer über alle Läufe.
+*/
 CREATE TABLE serienteilnehmer
 (
  tnid INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,6 +99,10 @@ CREATE TABLE serienteilnehmer
  bonusteilnahmen INT,
  altersklasse CHAR(8)
 );
+
+/*
+  Zur Vereinfachung der Abfragen werden hier die aktuellen Datensätze der Roh-Ergebnislisten gesammelt.
+*/
 CREATE TABLE letztedatensaetze
 (
   veranstaltungsid INT NOT NULL PRIMARY KEY,
@@ -91,6 +110,10 @@ CREATE TABLE letztedatensaetze
   FOREIGN KEY(datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
 );
 
+/*
+  In dieser Tabelle werden die Ergebnisse der Einzelläufe aufbereitet.
+  Das 'inwertung'-Attribut ist 1 für die maximal 4 schnellsten Läufe, sonst 0.
+*/
 CREATE TABLE serieneinzelergebnisse
 (
  tnid INT NOT NULL,
@@ -103,6 +126,9 @@ CREATE TABLE serieneinzelergebnisse
  FOREIGN KEY (datensatzid) REFERENCES letztedatensaetze(datensatzid) ON DELETE CASCADE
 );
 
+/*
+In dieser Tabelle wird die Serienwertung abgelegt.
+*/
 CREATE TABLE serienrangliste
 (
  tnid INT NOT NULL PRIMARY KEY,
@@ -181,6 +207,7 @@ sub keyword_replace
     s/ERSETZEDBUSER/${$config}{'db-user'}/g;
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;
     s/ERSETZEUPLOADFOLDER/${$config}{'upload-folder'}/g;
+    s/ERSETZEJAHR/${$config}{'jahr'}/g;
     print KWROUT;
   }
   close KWRIN;

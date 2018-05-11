@@ -20,7 +20,6 @@ createdb.sql:	config.json generator.pl
 
 adm:
 	mkdir adm
-
 	perl generator.pl --gen htuser
 
 adm/ergebnissehochladen.php:	adm config.json generator.pl vorlagen/ergebnissehochladen.php
@@ -53,5 +52,6 @@ install:	3rdparty $(GENERATED)
 
 clean:
 	rm -rf adm
+
 veryclean:
 	rm -rf 3rdparty
