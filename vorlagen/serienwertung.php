@@ -125,7 +125,7 @@ class SerienWertung
       $awtabelle[$row['tnid']]=["serienzeit" => $row['serienzeit'],
                                 "teilnahmen" => $row['teilnahmen'],
                                 "bonusteilnahmen" => $row['bonusteilnahmen'],
-                                "vorname" => $row['tnid'].":".$row['vorname'],
+                                "vorname" => $row['vorname'],
                                 "nachname" => $row['nachname'],
                                 "altersklasse" => $row['altersklasse'],
                                 "geschlecht" => $row['geschlecht'],

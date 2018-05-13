@@ -35,7 +35,8 @@ DEPLOYTO=www-data@webserver.provider.net:/server/html/nml-auswertung
 ```
 
 ### Eingabeformat ###
-Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w)und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Komma als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden (Trennzeichen sind diskutabel bzw. könnten einstellbar werden). Umlaute und Sonderzeichen müssen UTF-8-kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. (TODO: genauer/mit screenshots )
+Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w)und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Semikolon als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden (Trennzeichen sind diskutabel bzw. könnten einstellbar werden). Umlaute und Sonderzeichen sollen nach ISO-8859-1 kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. Wenn die 'Region und Sprache'-Einstellung auf 'Deutschland' steht, erhält man automatisch die richtige Zeichenkodierung und das Semikolon als Feldtrenner.
+![alt text](CSVspeichern.png "Logo Title Text 1")
 
 Eine Beispieldatei:
 ```
@@ -69,3 +70,4 @@ Die Klasse ErgebnisTabelle in "ergebnis.php" erledigt das Einfügen der Werte in
 Die Klasse SerienWertung in serienwertung.php rechnet die eindeutige Zuordnung der Teilnehmer aus den hochgeladenen Rohdaten und die Wertung
 aus und legt vorformatierte Zeilen der Ergebnisausgabe in der Datenbank ab.
 Das PHP-Skript serienergebnisse.php gibt die vorformatierten Ergebnisse gefiltert aus.
+Die Ausgegebenen Webseiten sind UTF-8-kodiert. Die ISO-8859-1-Kodierung der Eingabetabellen ist nötig weil Excel vermutlich wegen eines Fehlers keine UTF-8-kodierten CSV-Dateien speichert.

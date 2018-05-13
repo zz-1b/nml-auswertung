@@ -1,12 +1,16 @@
 
-include dblogin_details.mk
+DEPLOY_CFG = dblogin_details_test.mk
+#DEPLOY_CFG = dblogin_details.mk
+
+include $(DEPLOY_CFG)
 
 ifndef DEPLOYTO
 $(error DEPLOYTO ist nicht gesetzt, dblogin_details.mk prüfen!)
 endif
 
 GENERATED = createdb.sql adm/ergebnissehochladen.php adm/ergebnis.php \
- adm/csvupload.php adm/serienwertung.php adm/werteAus.php adm/.htaccess .htpasswd
+ adm/csvimport.php adm/serienwertung.php adm/werteAus.php adm/uebersicht.php \
+ adm/.htaccess .htaccess .htpasswd
 
 all:	3rdparty $(GENERATED)
 
@@ -16,42 +20,42 @@ all:	3rdparty $(GENERATED)
 	cd 3rdparty; wget http://fpdf.de/downloads/fpdf181.tgz; tar xzvf fpdf181.tgz
 
 createdb.sql:	config.json generator.pl
-	perl generator.pl --dbuser $(DBUSER) --gen db
+	perl generator.pl  --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD)  --gen db
 
 adm:
 	mkdir adm
+
+.htpasswd: passworte config.json generator.pl
 	perl generator.pl --gen htuser
 
-adm/ergebnissehochladen.php:	adm config.json generator.pl vorlagen/ergebnissehochladen.php
-	perl generator.pl --in vorlagen/ergebnissehochladen.php --out adm/ergebnissehochladen.php
-#	perl generator.pl -eingabe
+# generische Regel für die PHP-Skripte im adm-Ordner
+adm/%.php: vorlagen/%.php adm config.json generator.pl
+	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --uploadfolder $(UPLOADFOLDER) --in $< --out $@
 
-adm/csvupload.php:	adm config.json generator.pl vorlagen/csvimport.php
-	perl generator.pl --in vorlagen/csvimport.php --out adm/csvimport.php
+adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess-adm
+	perl generator.pl --in vorlagen/.htaccess-adm --out adm/.htaccess
 
-adm/ergebnis.php:	adm config.json generator.pl vorlagen/ergebnis.php
-		perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --in vorlagen/ergebnis.php --out adm/ergebnis.php
-
-adm/serienwertung.php: adm config.json generator.pl vorlagen/serienwertung.php
-	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --in vorlagen/serienwertung.php --out adm/serienwertung.php
-
-adm/werteAus.php: adm config.json generator.pl vorlagen/werteAus.php
-		perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --in vorlagen/werteAus.php --out adm/werteAus.php
-
-adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess
-	perl generator.pl --in vorlagen/.htaccess --out adm/.htaccess
+.htaccess: adm config.json generator.pl vorlagen/.htaccess-main
+	perl generator.pl --in vorlagen/.htaccess-main --out .htaccess
 
 wertung.html:
-	perl generator.pl -ausgabe
+	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) -ausgabe
 
 install:	3rdparty $(GENERATED)
-	rsync --info NAME1 --delete --recursive --links --verbose --include=".htaccess" --include ".htpasswd" \
-	--exclude=".*" --exclude="*.tmpl" --exclude="*~" --exclude="vorlagen" --exclude "dblogin_details.mk" \
+	rsync --delete --recursive --links --verbose --include=".htaccess" --include ".htpasswd" \
+	--exclude=".*" --exclude="*~" --exclude="vorlagen" --exclude "dblogin_*.mk" \
 	 -av . $(DEPLOYTO)/.
 
+pinstall: 3rdparty $(GENERATED)
+	rm -rf nml-auswertung; mkdir -p nml-auswertung/adm
+	cp -rp adm nml-auswertung/
+	cp .htaccess nml-auswertung/
+	rsync --delete --recursive --links --verbose --include=".htaccess" --include ".htpasswd" \
+	--exclude=".*" --exclude="*~" --exclude="vorlagen" --exclude "dblogin*.mk" --exclude "passworte" \
+	 -av nml-auswertung/ $(DEPLOYTO)/
 
 clean:
-	rm -rf adm
+	rm -rf adm createdb.sql
 
 veryclean:
 	rm -rf 3rdparty

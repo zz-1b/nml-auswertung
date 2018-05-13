@@ -75,7 +75,7 @@ CREATE TABLE ergebnisse
  jahrgang YEAR(4) NOT NULL,
  geschlecht ENUM('m','w') NOT NULL,
  verein CHAR(60) NOT NULL,
- zeit TIME(1) NOT NULL,
+ zeit TIME NOT NULL,
  INDEX vid_idx (datensatzid),
  CONSTRAINT PK_eindeutige_Person PRIMARY KEY ( datensatzid, nachname, vorname, jahrgang, verein, geschlecht ),
  FOREIGN KEY (datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
@@ -118,7 +118,7 @@ CREATE TABLE serieneinzelergebnisse
 (
  tnid INT NOT NULL,
  datensatzid int NOT NULL,
- zeit TIME(1) NOT NULL,
+ zeit TIME NOT NULL,
  rang INT NOT NULL,
  inwertung BOOL NOT NULL,
  CONSTRAINT PK_Wertung PRIMARY KEY (tnid, datensatzid),
@@ -132,7 +132,7 @@ In dieser Tabelle wird die Serienwertung abgelegt.
 CREATE TABLE serienrangliste
 (
  tnid INT NOT NULL PRIMARY KEY,
- serienzeit TIME(1) NOT NULL,
+ serienzeit TIME NOT NULL,
  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
 );
 ";
@@ -187,13 +187,14 @@ sub gen_htuser {
         my $laufname  = ${$lauf}{'name'};
         my $admpasswort = $admpassworte{$laufname};
         if ( $cr == 0 ) {
-            system("htpasswd -cb .htpasswd $laufname $admpasswort") == 0 or die("htpasswd bzw apache2-utils versagt/fehlt");
+            system("htpasswd -bcm .htpasswd $laufname $admpasswort") == 0 or die("htpasswd bzw apache2-utils versagt/fehlt");
             $cr=1;
         }
         else {
-            system("htpasswd -b .htpasswd $laufname $admpasswort") == 0 or die("htpasswd bzw apache2-utils versagt/fehlt");
+            system("htpasswd -bm .htpasswd $laufname $admpasswort") == 0 or die("htpasswd bzw apache2-utils versagt/fehlt");
         }
     }
+    close PWD;
 }
 
 sub keyword_replace
@@ -208,6 +209,7 @@ sub keyword_replace
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;
     s/ERSETZEUPLOADFOLDER/${$config}{'upload-folder'}/g;
     s/ERSETZEJAHR/${$config}{'jahr'}/g;
+    s/ERSETZEHTPASSWD/${$config}{'htpasswd'}/g;
     print KWROUT;
   }
   close KWRIN;
@@ -219,24 +221,18 @@ our $ofolder = "";
 my $dbname="";
 my $dbuser="";
 my $dbpasswd="";
+my $ufolder="";
+my $htpasswd="";
 my $result = GetOptions (
       "in:s" =>\$kwrin,
       "out:s" =>\$kwrout,
       "dbuser=s" => \$dbuser,
       "dbpasswd=s" => \$dbpasswd,
       "dbname=s" => \$dbname,
+      "uploadfolder=s" => \$ufolder,
+      "htpasswd=s" => \$htpasswd,
       "gen=s" => \$gen);
 
-# json::pp experiment
-#$perl_hash_or_arrayref = {bla => ["blub", "plip"]};
-#$perl_hash_or_arrayref = {t=>"goldig",bla => {t => "blub", u => "plip"}};
-#$perl_hash_or_arrayref = {bla => [{t => "blub", u => "plip"}, {t => "fisch", u => "fusch"}]};
-
-#$utf8_encoded_json_text = encode_json $perl_hash_or_arrayref;
-#print "Test: ".$utf8_encoded_json_text."\n";
-
-#my $fc = path($configfile)->slurp;
-#print "Datei:".$fc."\n";
 $config  = decode_json path($configfile)->slurp;
 
 if( $dbname ne "" )
@@ -251,13 +247,16 @@ if( $dbpasswd ne "")
 {
   ${$config}{'db-passwd'} = $dbpasswd;
 }
+if( $ufolder ne "")
+{
+  ${$config}{'upload-folder'} = $ufolder;
+}
+if( $htpasswd ne "")
+{
+  ${$config}{'htpasswd'} = $htpasswd;
+}
 
-#${$config}{'db-grants'} = true;
-#my @laeufe=@{${$config}{'laeufe'}};
-#foreach $lauf (@laeufe)
-#    print "Lauf:".${$lauf}{'name'}."\n";
-
-if( $kwrin ne "")
+if( $kwrin ne "" && $kwrout ne "")
 {
   keyword_replace($config,$krwin, $kwrout);
 }
@@ -268,4 +267,8 @@ elsif( $gen eq "db")
 elsif( $gen eq "htuser")
 {
   gen_htuser($config)
+}
+else
+{
+  die("Nichts zu tun!");
 }

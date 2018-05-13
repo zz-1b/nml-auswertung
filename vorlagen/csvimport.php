@@ -20,17 +20,14 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
     {  # Verbindungsfehler fangen
       try
       { # SQL fehler fangen
-        if(($kopf = fgetcsv($handle, 1000, ",")) !== FALSE)
+        if(($kopf = fgetcsv($handle, 1000, ";")) !== FALSE)
         {
           $kopfspalten=count($kopf);
           $ergebnis = new ErgebnisTabelle($benutzer, $uploadfile, $streckenid);
           $zeile=1;
           $ergebnis->erkenneSpalten($kopf);
-          while (($daten = fgetcsv($handle, 1000, ",")) !== FALSE)
+          while (($daten = fgetcsv($handle, 1000, ";")) !== FALSE)
           {
-            foreach( $daten as $c)
-            if(!mb_check_encoding($c, 'UTF-8'))
-              throw new Exception('Falsche Zeichenkodierung in Zeile '.$zeile.' - bitte UTF-8 verwenden.');
             $num = count($daten);
             if( $num != $kopfspalten )
               throw new Exception('Falsche Spaltenzahl '.$num.' statt '.$kopfspalten.' in Zeile '.$zeile);
