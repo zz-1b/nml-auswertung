@@ -2,6 +2,7 @@
 passworte
 .htpasswd
 dblogin_details.mk
+dblogin_details_test.mk
 
 #generierte Dateien
 *.csv
