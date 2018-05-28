@@ -1,0 +1,40 @@
+<style>
+    table {
+        width: 100%;
+    }
+    th {
+        background-color: #0d5cab;
+        color: white;
+    }
+    td {
+        border: 1px solid;
+        overflow: hidden;
+        vertical-align: top;
+    }
+    fieldset {
+        background: #eee;
+        padding: 10px;
+        width: 22em;
+    }
+    legend {
+        margin-top: 19px;
+        font-weight: bold;
+        background: #0d5cab;
+        color: #ffffff;
+        border-top: 1px solid #999;
+    }
+    input {
+        text-align: right;
+        padding-right: 1em;
+    }
+    label {
+        background: #eee;
+        display: inline-block;
+        width: 7em;
+    }
+.tkopf {
+    font-weight: bold;
+    background: #0d5cab;
+    color: #ffffff;
+    }
+</style>

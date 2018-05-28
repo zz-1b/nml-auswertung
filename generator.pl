@@ -133,6 +133,8 @@ CREATE TABLE serienrangliste
 (
  tnid INT NOT NULL PRIMARY KEY,
  serienzeit TIME NOT NULL,
+ gesamtplatz INT,
+ akplatz INT,
  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
 );
 ";
@@ -204,6 +206,7 @@ sub keyword_replace
   open(KWROUT, ">", $kwrout) or die("Cannot open $kwrout for writing.");
   while(<KWRIN>)
   {
+    s/ERSETZETITEL/${$config}{'titel '}/g;
     s/ERSETZEDBNAME/${$config}{'db-name'}/g;
     s/ERSETZEDBUSER/${$config}{'db-user'}/g;
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;

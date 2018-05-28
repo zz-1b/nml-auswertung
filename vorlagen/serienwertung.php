@@ -75,7 +75,7 @@ class SerienWertung
 
 
     $this->dbh->exec('DELETE FROM serieneinzelergebnisse');
-    print "serieneinzelergebnisse".$this->dbh->exec(
+    $this->dbh->exec(
     'INSERT INTO serieneinzelergebnisse(rang, tnid, datensatzid, zeit, inwertung)
      SELECT (case tnid
          WHEN @curId
@@ -109,6 +109,33 @@ class SerienWertung
      SELECT t.tnid, SEC_TO_TIME(sum(TIME_TO_SEC(e.zeit)*e.inwertung)-t.teilnahmen*45) AS serienzeit
      FROM serienteilnehmer t, serieneinzelergebnisse e
      WHERE t.tnid=e.tnid GROUP BY t.tnid');
+
+    $sthak=$this->dbh->prepare("SELECT DISTINCT altersklasse FROM serienteilnehmer");
+    $akrows=$sthak->fetchAll(PDO::FETCH_ASSOC);
+    foreach($akrows as $akrow)
+    {
+      $altersklasse=$akrow['altersklasse'];
+      try {
+        $this->dbh->exec('DROP TABLE akliste');
+      } catch (Exception $e) { }
+
+
+      $this->dbh->execute('CREATE TEMPORARY TABLE akliste
+        AS SELECT r.tnid, r.serienzeit, t.bonusteilnahmen, t.teilnahmen, t.altersklasse, t.geschlecht
+                        FROM serienrangliste r, serienteilnehmer t
+                        WHERE r.tnid=t.tnid
+                        AND t.altersklasse='.$altersklasse);
+
+      try {
+        $this->dbh->exec('DROP TABLE akrangliste');
+          } catch (Exception $e) { }
+
+      $this->dbh->execute('CREATE TEMPORARY TABLE akrangliste
+                          AS SELECT a.tnid, (SELECT curRank:=curRank+1) as rang
+                          FROM akliste a, (SELECT @curRank := 0) r
+                          ORDER BY a.teilnahmen-a.bonusteilnahmen DESC, a.serienzeit ASC');
+
+    }
   }
 
   function HTMLAUswertung()
