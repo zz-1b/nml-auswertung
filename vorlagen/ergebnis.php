@@ -87,13 +87,12 @@ class ErgebnisTabelle
       throw new \Exception("das Geschlecht muß als m/w angegeben sein.", 1);
     $verein = $zeile[$this->spaltenindizes["Verein"]];
     $zeit = $zeile[$this->spaltenindizes["Zeit"]];
-    print "Kodierung: ".mb_detect_encoding($nachname).", ".mb_detect_encoding($vorname).", ".mb_detect_encoding($verein)."<br>\n";
     $sql->execute(array('datensatzid' => $this->dsid,
-          'nachname' => htmlspecialchars(mb_convert_encoding($nachname, "UTF-8", "ISO-8859-1")),
-          'vorname' => htmlspecialchars(mb_convert_encoding($vorname, "UTF-8", "ISO-8859-1")),
+          'nachname' => htmlspecialchars($nachname),
+          'vorname' => htmlspecialchars($vorname),
           'jahrgang' => intval($jahrgang),
           'geschlecht' => htmlspecialchars($geschlecht),
-          'verein' => htmlspecialchars(mb_convert_encoding($verein, "UTF-8", "ISO-8859-1")),
+          'verein' => htmlspecialchars($verein),
           'zeit' => $zeit)
       );
   }

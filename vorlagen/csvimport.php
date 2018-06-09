@@ -13,6 +13,10 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
 
   echo "Datei erfolgreich empfangen.\n";
 
+  $ergebnis_csv_text=file_get_contents($uploadfile, FALSE, NULL, 0, 1000000);
+  $csv_encoding = mb_detect_encoding($ergebnis_csv_text, "UTF-8, ISO-8859-1, ISO-8859-2");
+  print "Zeichenkodierung der Datei: ".$csv_encoding."<br>\n";
+
   $zeile = 0;
   if (($handle = fopen($uploadfile, "r")) !== FALSE)
   {
@@ -20,14 +24,16 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
     {  # Verbindungsfehler fangen
       try
       { # SQL fehler fangen
-        if(($kopf = fgetcsv($handle, 1000, ";")) !== FALSE)
+        if( ($zeile = fgets($handle, 1000)) !== false)
         {
+          $kopf = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding), ";");
           $kopfspalten=count($kopf);
           $ergebnis = new ErgebnisTabelle($benutzer, $uploadfile, $streckenid);
           $zeile=1;
           $ergebnis->erkenneSpalten($kopf);
-          while (($daten = fgetcsv($handle, 1000, ";")) !== FALSE)
+          while (($zeile = fgets($handle, 1000)) !== false)
           {
+            $daten = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding), ";");
             $num = count($daten);
             if( $num != $kopfspalten )
               throw new Exception('Falsche Spaltenzahl '.$num.' statt '.$kopfspalten.' in Zeile '.$zeile);
