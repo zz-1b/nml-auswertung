@@ -10,7 +10,7 @@ endif
 
 GENERATED = createdb.sql adm/ergebnissehochladen.php adm/ergebnis.php \
  adm/csvimport.php adm/serienwertung.php adm/werteAus.php adm/uebersicht.php \
- adm/.htaccess .htaccess .htpasswd lnm-style.css
+ adm/.htaccess .htaccess .htpasswd lnm-style.css serienergebnisse.html
 
 all:	3rdparty $(GENERATED)
 
@@ -41,8 +41,8 @@ adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess-adm
 lnm-style.css: vorlagen/lnm-style.css
 	cp $< $@
 
-wertung.html:
-	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) -ausgabe
+serienergebnisse.html: vorlagen/serienergebnisse.html
+	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --in $< --out $@
 
 install:	3rdparty $(GENERATED)
 	rsync --delete --recursive --links --verbose --include=".htaccess" --include ".htpasswd" \

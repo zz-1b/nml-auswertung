@@ -98,7 +98,7 @@ CREATE TABLE serienteilnehmer
  teilnahmen INT,
  bonusteilnahmen INT,
  altersklasse CHAR(8)
-);
+ );
 
 /*
   Zur Vereinfachung der Abfragen werden hier die aktuellen Datensätze der Roh-Ergebnislisten gesammelt.
@@ -133,8 +133,9 @@ CREATE TABLE serienrangliste
 (
  tnid INT NOT NULL PRIMARY KEY,
  serienzeit TIME NOT NULL,
- gesamtplatz INT,
- akplatz INT,
+ bonuszeit TIME NOT NULL,
+ gesamtplatz INT,  -- m/w
+ altersklassenplatz INT,
  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
 );
 ";

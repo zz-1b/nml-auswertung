@@ -99,49 +99,79 @@ class SerienWertung
     SET serienteilnehmer.teilnahmen=teilnahmezaehlung.teilnahmen, serienteilnehmer.bonusteilnahmen=0
     WHERE serienteilnehmer.tnid=teilnahmezaehlung.tnid');
 
+    $this->dbh->exec('UPDATE serienteilnehmer  SET serienteilnehmer.bonusteilnahmen=0');
+
     $this->dbh->exec('UPDATE serienteilnehmer, teilnahmezaehlung
       SET serienteilnehmer.bonusteilnahmen=teilnahmezaehlung.teilnahmen-4
       WHERE serienteilnehmer.tnid=teilnahmezaehlung.tnid and teilnahmezaehlung.teilnahmen>4');
 
     # Berechnung der Serien-Zeit mit 45 Sekunden Bonus ab dem 5. Lauf - Achtung, SEC_TO_TIME und TIME_TO_SEC sind kein Standard-SQL
     $this->dbh->exec('DELETE FROM serienrangliste');
-    $this->dbh->exec('INSERT INTO serienrangliste(tnid, serienzeit)
-     SELECT t.tnid, SEC_TO_TIME(sum(TIME_TO_SEC(e.zeit)*e.inwertung)-t.teilnahmen*45) AS serienzeit
+    $this->dbh->exec('INSERT INTO serienrangliste(tnid, serienzeit, bonuszeit)
+     SELECT t.tnid, SEC_TO_TIME(sum(TIME_TO_SEC(e.zeit)*e.inwertung)-t.bonusteilnahmen*45) AS serienzeit, SEC_TO_TIME(t.bonusteilnahmen*45) AS bonuszeit
      FROM serienteilnehmer t, serieneinzelergebnisse e
      WHERE t.tnid=e.tnid GROUP BY t.tnid');
 
-    $sthak=$this->dbh->prepare("SELECT DISTINCT altersklasse FROM serienteilnehmer");
-    $akrows=$sthak->fetchAll(PDO::FETCH_ASSOC);
-    foreach($akrows as $akrow)
+    try
+    {
+
+    $sthak=$this->dbh->prepare("SELECT DISTINCT altersklasse FROM serienteilnehmer;");
+    $sthak->execute();
+    foreach($sthak->fetchAll(PDO::FETCH_ASSOC) as $akrow)
     {
       $altersklasse=$akrow['altersklasse'];
       try {
         $this->dbh->exec('DROP TABLE akliste');
       } catch (Exception $e) { }
 
-
-      $this->dbh->execute('CREATE TEMPORARY TABLE akliste
+      $this->dbh->exec('CREATE TEMPORARY TABLE akliste
         AS SELECT r.tnid, r.serienzeit, t.bonusteilnahmen, t.teilnahmen, t.altersklasse, t.geschlecht
                         FROM serienrangliste r, serienteilnehmer t
                         WHERE r.tnid=t.tnid
-                        AND t.altersklasse='.$altersklasse);
-
+                        AND t.altersklasse=\''.$altersklasse.'\';');
       try {
-        $this->dbh->exec('DROP TABLE akrangliste');
+            $this->dbh->exec('DROP TABLE akrangliste');
           } catch (Exception $e) { }
 
-      $this->dbh->execute('CREATE TEMPORARY TABLE akrangliste
-                          AS SELECT a.tnid, (SELECT curRank:=curRank+1) as rang
+      $this->dbh->exec('CREATE TEMPORARY TABLE akrangliste
+                          AS SELECT a.tnid, (SELECT @curRank:=@curRank+1) as altersklassenplatz
                           FROM akliste a, (SELECT @curRank := 0) r
                           ORDER BY a.teilnahmen-a.bonusteilnahmen DESC, a.serienzeit ASC');
 
+      $this->dbh->exec('UPDATE serienrangliste, akrangliste
+                          SET serienrangliste.altersklassenplatz=akrangliste.altersklassenplatz
+                          WHERE serienrangliste.tnid=akrangliste.tnid');
     }
+
+    foreach ( array('m','w') as $geschlecht )
+    {
+      try { $this->dbh->exec('DROP TABLE gliste'); } catch (Exception $e) { }
+
+      $this->dbh->exec('CREATE TEMPORARY TABLE gliste
+        AS SELECT r.tnid, r.serienzeit, t.bonusteilnahmen, t.teilnahmen, t.altersklasse, t.geschlecht
+                        FROM serienrangliste r, serienteilnehmer t
+                        WHERE r.tnid=t.tnid
+                        AND t.geschlecht=\''.$geschlecht.'\';');
+      try { $this->dbh->exec('DROP TABLE grangliste'); } catch (Exception $e) { }
+
+      $this->dbh->exec('CREATE TEMPORARY TABLE grangliste
+                          AS SELECT a.tnid, (SELECT @curRank:=@curRank+1) as gesamtplatz
+                          FROM gliste a, (SELECT @curRank := 0) r
+                          ORDER BY a.teilnahmen-a.bonusteilnahmen DESC, a.serienzeit ASC');
+
+      $this->dbh->exec('UPDATE serienrangliste, grangliste
+                          SET serienrangliste.gesamtplatz=grangliste.gesamtplatz
+                          WHERE serienrangliste.tnid=grangliste.tnid');
+    }
+
+  } catch (Exception $e) { print $e;}
   }
 
   function HTMLAUswertung()
   {
     $awtabelle=array();
-    $sth=$this->dbh->prepare('SELECT r.tnid, r.serienzeit, t.bonusteilnahmen, t.teilnahmen, t.vorname, t.nachname, t.altersklasse, t.geschlecht, t.jahrgang
+    $sth=$this->dbh->prepare('SELECT r.tnid, r.serienzeit, r.bonuszeit, t.teilnahmen, t.vorname, t.nachname,
+                                     r.gesamtplatz, t.altersklasse, r.altersklassenplatz, t.geschlecht, t.jahrgang
                        FROM serienrangliste r, serienteilnehmer t where r.tnid=t.tnid
                        ORDER BY t.teilnahmen-t.bonusteilnahmen DESC, r.serienzeit ASC');
     $sth->execute();
@@ -151,10 +181,12 @@ class SerienWertung
 #      print "T ".$row['tnid']."   ".$row['serienzeit']."<br>\n";
       $awtabelle[$row['tnid']]=["serienzeit" => $row['serienzeit'],
                                 "teilnahmen" => $row['teilnahmen'],
-                                "bonusteilnahmen" => $row['bonusteilnahmen'],
+                                "bonuszeit" => $row['bonuszeit'],
                                 "vorname" => $row['vorname'],
                                 "nachname" => $row['nachname'],
+                                "gesamtplatz" => $row['gesamtplatz'],
                                 "altersklasse" => $row['altersklasse'],
+                                "altersklassenplatz" => $row['altersklassenplatz'],
                                 "geschlecht" => $row['geschlecht'],
                                 "jahrgang" => $row['jahrgang']
                                ];
@@ -186,7 +218,10 @@ class SerienWertung
     {
         print "<th>".$row["titel"]."</th>";
     }
+    print "<th>Gesamt-<br>platz</th>";
+    print "<th>AK<br>Platz</th>";
     print "<th>AK</th>";
+    print "<th>Bonuszeit</th>";
     print "<th>Serienwertung</th>";
     print "</tr>\n";
 
@@ -208,7 +243,10 @@ class SerienWertung
          print "<td>--</td>";
        }
       }
+      print "<td>".$teilnehmer["gesamtplatz"].".</td>";
+      print "<td>".$teilnehmer["altersklassenplatz"].".</td>";
       print "<td>".$teilnehmer["altersklasse"]."</td>";
+      print "<td>".substr($teilnehmer["bonuszeit"],3)."</td>";
       if( $teilnehmer['teilnahmen']>=4)
       {
         print "<td>".$teilnehmer["serienzeit"]."</td>";

@@ -3,35 +3,35 @@
   "laeufe": [
     {
       "name": "teekottenlauf",
-      "titel": "Salvus-Teekottenlauf",
+      "titel": "Salvus-<br>Teekottenlauf",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
       }]
     }, {
       "name": "altstadtlauf",
-      "titel": "Steinfurter Altstadt Abendlauf",
+      "titel": "Steinfurter<br>Altstadt<br>Abendlauf",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
       }]
     }, {
       "name": "neuenkirchenlauf",
-      "titel": "VR-Bank-Lauf<br>“Rund um den Offlumer See”",
+      "titel": "VR-Bank-Lauf<br>“Rund um den<br>Offlumer See”",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
       }]
     }, {
       "name": "aaseelauf",
-      "titel": "Abendlauf<br>„Rund um den Aasee“",
+      "titel": "Abendlauf<br>„Rund um<br>den Aasee“",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
       }]
     }, {
       "name": "berglauf",
-      "titel": "Altenberger<br>Volksbank-Berglauf",
+      "titel": "Altenberger<br>Volksbank-<br>Berglauf",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
