@@ -10,7 +10,8 @@ endif
 
 GENERATED = createdb.sql adm/ergebnissehochladen.php adm/ergebnis.php \
  adm/csvimport.php adm/serienwertung.php adm/werteAus.php adm/uebersicht.php \
- adm/.htaccess .htaccess .htpasswd lnm-style.css serienergebnisse.html
+ adm/.htaccess .htaccess .htpasswd lnm-style.css serienergebnisse.html serienergebnisausgabe.php \
+ images/logo.svg
 
 all:	3rdparty $(GENERATED)
 
@@ -18,6 +19,7 @@ all:	3rdparty $(GENERATED)
 	mkdir -p 3rdparty/ajaxcrud
 	cd 3rdparty; wget -O ajaxcrud.zip http://www.ajaxcrud.com/getFile.php; cd ajaxcrud; unzip -x ../ajaxcrud.zip ; rm -rf examples
 	cd 3rdparty; wget http://fpdf.de/downloads/fpdf181.tgz; tar xzvf fpdf181.tgz
+	cd 3rdparty; wget https://code.jquery.com/jquery-3.3.1.min.js
 
 createdb.sql:	config.json generator.pl
 	perl generator.pl  --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD)  --gen db
@@ -29,7 +31,10 @@ adm:
 	perl generator.pl --gen htuser
 
 # generische Regel für die PHP-Skripte im adm-Ordner
-adm/%.php: vorlagen/%.php adm config.json generator.pl
+adm/%.php: vorlagen/%.php adm config.json generator.pl $(DEPLOY_CFG)
+	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --uploadfolder $(UPLOADFOLDER) --in $< --out $@
+
+%.php: vorlagen/%.php config.json generator.pl $(DEPLOY_CFG)
 	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --uploadfolder $(UPLOADFOLDER) --in $< --out $@
 
 adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess-adm
@@ -41,7 +46,11 @@ adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess-adm
 lnm-style.css: vorlagen/lnm-style.css
 	cp $< $@
 
-serienergebnisse.html: vorlagen/serienergebnisse.html
+images/logo.svg: vorlagen/LNM_Logo_2018_trace.svg
+	mkdir images
+	cp $< $@
+
+serienergebnisse.html: vorlagen/serienergebnisse.html config.json $(DEPLOY_CFG)
 	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) --in $< --out $@
 
 install:	3rdparty $(GENERATED)
@@ -50,8 +59,9 @@ install:	3rdparty $(GENERATED)
 	 -av . $(DEPLOYTO)/.
 
 pinstall: 3rdparty $(GENERATED)
-	rm -rf nml-auswertung; mkdir -p nml-auswertung/adm
+	rm -rf nml-auswertung; mkdir -p nml-auswertung/adm; mkdir -p nml-auswertung/images
 	for i in $(GENERATED); do cp $$i nml-auswertung/$$i ; done
+	cp 3rdparty/jquery* nml-auswertung/jquery.min.js
 	cp -rp adm nml-auswertung/
 	cp .htaccess nml-auswertung/
 	rsync --delete --recursive --links --verbose --include=".htaccess" --include ".htpasswd" \
@@ -59,7 +69,7 @@ pinstall: 3rdparty $(GENERATED)
 	 -av nml-auswertung/ $(DEPLOYTO)/
 
 clean:
-	rm -rf adm createdb.sql
+	rm -rf adm createdb.sql nml-auswertung
 
 veryclean:
 	rm -rf 3rdparty

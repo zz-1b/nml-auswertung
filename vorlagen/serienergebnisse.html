@@ -5,18 +5,20 @@
 
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="laufstil.css">
+    <link rel="stylesheet" type="text/css" href="lnm-style.css">
 
-    <script src="jquery.min.js"></script>
+    <script src="./jquery.min.js"></script>
     <script language="javascript" type="text/javascript">
-        $(document).ready(function() {
-            $.getJSON("./veranstaltungen.php", function(jsondata) {
+      $(document).ready(function() {
+            /*
+            $.getJSON("./serien.php", function(jsondata) {
               leseliste(jsondata);
               onSelectLauf();
             });
+            */
+            queryErgebnis(1,'',"");
         });
-
-        function queryErgebnis(veranstaltungsid, lauf, geschlecht, stichwort) {
+        function queryErgebnis(serienid,  geschlecht, stichwort) {
             if (window.XMLHttpRequest) {
                 // code for IE7+, Firefox, Chrome, Opera, Safari
                 xmlhttp = new XMLHttpRequest();
@@ -25,26 +27,19 @@
                 xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
             }
             xmlhttp.onreadystatechange = function() {
-                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                  if (xmlhttp.status === 200) {
                     document.getElementById("ttabelle").innerHTML = xmlhttp.responseText;
+                  } else {
+                    document.getElementById("ttabelle").innerHTML ="Die Suchanfrage ist fehlgeschlagen, bitte versuchen Sie es später noch einmal.";
+                  }
                 }
             };
-            xmlhttp.open("GET", "./ergebnisse.php?veranstaltungsid=" + veranstaltungsid + "&stichwort=" + stichwort + "&geschlecht=" + geschlecht + "&lauf=" + lauf, true);
+            xmlhttp.open("GET", "./serienergebnisausgabe.php?serienid=" + serienid + "&stichwort=" + stichwort + "&geschlecht=" + geschlecht);
             xmlhttp.send();
         }
-
-        function onSelectLauf() {
-          var veranstaltungsid = document.getElementById("veranstaltung").value;
-          $.getJSON("./veranstaltungen.php?veranstaltungsid="+veranstaltungsid, function(jsondata) {
-            leselaeufe(jsondata);
-            startesuche();
-          });
-
-        }
-
         function startesuche() {
-            var veranstaltungsid = document.getElementById("veranstaltung").value;
-            var lauf = document.getElementById("lauf").value;
+            var serienid = 1
             var geschlecht = "";
             if( document.getElementById("g_m").checked )
             {
@@ -55,75 +50,46 @@
               geschlecht = 'w';
             }
             var stichwort = document.getElementById("stichwort").value;
-            queryErgebnis(veranstaltungsid, lauf, geschlecht, stichwort);
-        }
-        function leseliste(jsonData) {
-            var select = $("#veranstaltung");
-            select.html("");
-            $.each(jsonData, function(vid, titel){
-              select.append($("<option>", {value: vid, text: titel}))
-            });
-            $("#veranstaltung option:last").prop('selected',true);
-        }
-        function leselaeufe(jsonData) {
-            var select = $("#lauf");
-            select.html("");
-            select.append($("<option>",{value: "",text: "Alle",selected:true }));
-            $.each(jsonData, function(nummer, laufname){
-              select.append($("<option>", {value: laufname, text: laufname}))
-            });
+            queryErgebnis(serienid, geschlecht, stichwort);
         }
     </script>
-    <title>Ergebnisse des Altenberger Berglaufes</title>
-
+    <title>Ergebnisse der Laufserie Nord-Münsterland</title>
 </head>
 
-<body bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#840084" alink="#0000ff">
-
-    <p><img style="float: right;width:30%" alt="" src="images/LA_Logo_Rund_BL.jpg" /></p>
-    <p>
-        <fieldset>
-            <label for="veranstaltung"> Jahr: </label>
-            <!-- aus der datenbank auslesen -->
-            <select name="veranstaltung" id="veranstaltung" onchange="onSelectLauf()">
-                <option selected value="1">2016</option>
-                <option value="1">2015</option>
-                <option value="1">2014</option>
-                <option value="1">2013</option>
-                <option value="1">2012</option>
-            </select>
-            <br>
-
-            <label for="lauf"> Lauf: </label>
-            <select name="lauf" id="lauf" onchange="startesuche()">
-                <option selected value="">Alle</option>
-                <option value="10 km">10 km</option>
-                <option value="5 km">5 km</option>
-                <option value="2 km">2 km Schülerlauf</option>
-                <option value="1.3 km">1.3 km Schülerlauf</option>
-                <option value="Bambini">Bambinilauf</option>
-            </select>
-            <br>
-            <label for="stichwort"> Stichwort: </label>
-            <input type="text" name="Stichwort" id="stichwort" onchange="startesuche()">
-    </p>
+<body>
+<div style="float:left">
+<H1>Ergebnisse der ERSETZETITEL</H1>
+    <fieldset>
+      <!-- aus der datenbank auslesen
+      <label for="veranstaltung"> Jahr: </label>
+      <select name="veranstaltung" id="veranstaltung" onchange="onSelectLauf()">
+        <option selected value="1">2019</option>
+        <option value="1">2019</option>
+        <option value="1">2018</option>
+      </select>
+      <br>
+-->
+        <label for="stichwort"> Stichwort: </label>
+        <input type="text" name="Stichwort" id="stichwort" onchange="startesuche()">
+        <input type="button" value="Suchen" onclick="startesuche()">
+    </fieldset>
     <fieldset>
         <input type="radio" id="g_alle" name="geschlecht" value="" checked onclick="startesuche()">
         <label for="g_alle">Alle</label>
-        <br>
+
         <input type="radio" id="g_m" name="geschlecht" value="m" onclick="startesuche()">
         <label for="g_m"> M&auml;nner</label>
-        <br>
+
         <input type="radio" id="g_w" name="geschlecht" value="w" onclick="startesuche()">
         <label for="g_w">Frauen</label>
-        <br>
     </fieldset>
-    <input type="button" value="Suchen" onclick="startesuche()">
-    </fieldset>
-
-    <div id="ttabelle">Suchergebnis</div>
-
-    <p class="center"><a href="http://www.laufen-in-altenberge.de" target="_aus">Hauptseite</a> <a href="./impressum.html">Impressum</a></p>
+</div>
+<div style="float:right">
+    <img style="width=30%" alt="NML-Logo" src="images/logo.svg" />
+</div>
+<p>
+<div id="ttabelle"> </div>
+<p class="center"><a href="http://www.nord-muensterland.de" target="_aus">Hauptseite</a> <a href="http://www.nord-muensterland.de/impressum.html">Impressum</a></p>
 
 </body>
 

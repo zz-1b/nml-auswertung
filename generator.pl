@@ -17,19 +17,42 @@ CREATE DATABASE ${dbname} CHARACTER SET utf8;
  Datenbank/Datenmodell für Laufergebnisse und Laufserien
 
  Serien bestehen aus vorgegebenen Veranstaltungen.
- Pro Veranstaltung gibt es Strecken mit Ergebnisdatensätzen.
+ Pro Veranstaltung gibt es Strecken mit (einzelnen) Ergebnisdatensätzen.
 
  Die Tabellen beschreiben das Datenmodell entlang der Beziehungen zwischen
  den modellierten Daten, ausgedrückt durch Fremdschlüsselbeziehungen.
 */
 USE ${dbname};
 
+CREATE TABLE serien
+(
+ serienid INT NOT NULL AUTO_INCREMENT,
+ urkundenid INT,
+ titel CHAR(255) NOT NULL,
+ PRIMARY KEY (serienid)
+);
+
+/*
+  Laufveranstaltungen, die Teil einer Laufserie sein können
+*/
 CREATE TABLE veranstaltungen
 (
   veranstaltungsid INT NOT NULL AUTO_INCREMENT,
   name CHAR(40) NOT NULL,
   titel CHAR(255) NOT NULL,
+  zeit TIMESTAMP NOT NULL,
+  serienid INT,
+  urkundenid INT,
   PRIMARY KEY (veranstaltungsid)
+);
+
+/*
+  Hochgeladene Vorlagen
+*/
+CREATE TABLE urkundenvorlagen
+(
+  urkundenid INT AUTO_INCREMENT PRIMARY KEY,
+  pfad VARCHAR(512)
 );
 
 /*
@@ -69,16 +92,16 @@ CREATE TABLE datensaetze
 */
 CREATE TABLE ergebnisse
 (
- datensatzid int NOT NULL,
- nachname CHAR(40) NOT NULL,
- vorname CHAR(40) NOT NULL,
- jahrgang YEAR(4) NOT NULL,
- geschlecht ENUM('m','w') NOT NULL,
- verein CHAR(60) NOT NULL,
- zeit TIME NOT NULL,
- INDEX vid_idx (datensatzid),
- CONSTRAINT PK_eindeutige_Person PRIMARY KEY ( datensatzid, nachname, vorname, jahrgang, verein, geschlecht ),
- FOREIGN KEY (datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
+  datensatzid int NOT NULL,
+  nachname CHAR(40) NOT NULL,
+  vorname CHAR(40) NOT NULL,
+  jahrgang YEAR(4) NOT NULL,
+  geschlecht ENUM('m','w') NOT NULL,
+  verein CHAR(60) NOT NULL,
+  zeit TIME NOT NULL,
+  ordnungsnr INT NOT NULL DEFAULT 1,
+  CONSTRAINT PK_eindeutige_Person PRIMARY KEY ( datensatzid, nachname, vorname, jahrgang, geschlecht ),
+  FOREIGN KEY (datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
 );
 
 /*
@@ -88,17 +111,20 @@ CREATE TABLE ergebnisse
 */
 CREATE TABLE serienteilnehmer
 (
- tnid INT AUTO_INCREMENT PRIMARY KEY,
- nachname CHAR(40) NOT NULL,
- vorname CHAR(40) NOT NULL,
- jahrgang YEAR(4) NOT NULL,
- geschlecht ENUM('m','w') NOT NULL,
- -- notnagel zur identifikation bei namens/jahrgangsgleichheit
- verein CHAR(60),
- teilnahmen INT,
- bonusteilnahmen INT,
- altersklasse CHAR(8)
- );
+  serienid INT NOT NULL,
+  tnid INT AUTO_INCREMENT PRIMARY KEY,
+  nachname CHAR(40) NOT NULL,
+  vorname CHAR(40) NOT NULL,
+  jahrgang YEAR(4) NOT NULL,
+  geschlecht ENUM('m','w') NOT NULL,
+  -- notnagel zur identifikation bei namens/jahrgangsgleichheit
+  ordnungsnr INT NOT NULL,
+  verein CHAR(60),
+  teilnahmen INT,
+  bonusteilnahmen INT,
+  altersklasse CHAR(8),
+  FOREIGN KEY(serienid) REFERENCES serien(serienid) ON DELETE CASCADE
+);
 
 /*
   Zur Vereinfachung der Abfragen werden hier die aktuellen Datensätze der Roh-Ergebnislisten gesammelt.
@@ -116,12 +142,13 @@ CREATE TABLE letztedatensaetze
 */
 CREATE TABLE serieneinzelergebnisse
 (
+ serienid INT NOT NULL,
  tnid INT NOT NULL,
  datensatzid int NOT NULL,
  zeit TIME NOT NULL,
  rang INT NOT NULL,
  inwertung BOOL NOT NULL,
- CONSTRAINT PK_Wertung PRIMARY KEY (tnid, datensatzid),
+ CONSTRAINT PK_serieneinzelergebnisse PRIMARY KEY (serienid, tnid, datensatzid),
  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE,
  FOREIGN KEY (datensatzid) REFERENCES letztedatensaetze(datensatzid) ON DELETE CASCADE
 );
@@ -131,13 +158,53 @@ In dieser Tabelle wird die Serienwertung abgelegt.
 */
 CREATE TABLE serienrangliste
 (
- tnid INT NOT NULL PRIMARY KEY,
+ serienid INT NOT NULL,
+ tnid INT NOT NULL,
  serienzeit TIME NOT NULL,
  bonuszeit TIME NOT NULL,
- gesamtplatz INT,  -- m/w
+ gesamtplatz INT,  -- wg sortierung
+ mwplatz INT,
  altersklassenplatz INT,
+ CONSTRAINT PK_serienrangliste PRIMARY KEY (serienid, tnid),
  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
 );
+
+/*
+  Für das Suchformular pro Laufserie
+*/
+CREATE TABLE serienauswertungen
+(
+  serienid INT NOT NULL,
+  htmlhead TEXT NOT NULL,
+  CONSTRAINT PK_serienauswertungen PRIMARY KEY (serienid),
+  FOREIGN KEY (serienid) REFERENCES serien(serienid) ON DELETE CASCADE
+);
+
+/*
+  Für das Suchformular pro Laufserie
+*/
+CREATE TABLE serienwebergebnisse
+(
+  serienid INT NOT NULL,
+  tnid INT NOT NULL,
+  htmlrow TEXT NOT NULL,
+  CONSTRAINT PK_serienwebergebnisse PRIMARY KEY (serienid, tnid),
+  FOREIGN KEY (serienid) REFERENCES serienauswertungen(serienid) ON DELETE CASCADE,
+  FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
+);
+
+/*
+  Für das Suchformular pro Veranstaltung
+*/
+CREATE TABLE webergebnisse
+(
+  datensatzid INT NOT NULL,
+  gesamtplatz INT NOT NULL,
+  tnid INT NOT NULL,
+  htmlrow TEXT NOT NULL,
+  CONSTRAINT PK_webergebnisse PRIMARY KEY (datensatzid, tnid)
+);
+
 ";
 # Evtl. Rechte vergebnen
   if(${$config}{'db-grants'} )
@@ -152,24 +219,28 @@ GRANT ALL ON  ${dbname}.* TO '${dbuser}';
 ";
   }
 
-# vordefinierte Läufe in die Datenbank
+# vordefinierte Serie/Läufe in die Datenbank
+my $serientitel=${$config}{'titel'};
+$sql.="INSERT INTO serien (titel) VALUES ('$serientitel');\n";
+
   my @laeufe=@{${$config}{'laeufe'}};
   foreach $lauf (@laeufe)
   {
     my $laufname = ${$lauf}{'name'};
     my $lauftitel = ${$lauf}{'titel'};
-    my $insert="INSERT INTO veranstaltungen (name,titel) VALUES ('$laufname','$lauftitel');";
+    my $insert="INSERT INTO veranstaltungen (name,titel,serienid)
+                SELECT '$laufname','$lauftitel',max(serienid) as serienid
+                FROM serien;";
     $sql.=$insert."\n";
     my @strecken=@{${$lauf}{'strecken'}};
     foreach $strecke (@strecken)
     {
       my $streckenname = ${$strecke}{'name'};
       my $distanz = ${$strecke}{'distanz'};
-      my $insert="INSERT INTO strecken (veranstaltungsid, name, meter)
+      $sql.="INSERT INTO strecken (veranstaltungsid, name, meter)
       SELECT veranstaltungsid,'$streckenname','$distanz'
       FROM veranstaltungen
-      WHERE name='$laufname' AND titel='$lauftitel';";
-      $sql.=$insert."\n";
+      WHERE name='$laufname' AND titel='$lauftitel';\n";
     }
   }
 
@@ -207,7 +278,7 @@ sub keyword_replace
   open(KWROUT, ">", $kwrout) or die("Cannot open $kwrout for writing.");
   while(<KWRIN>)
   {
-    s/ERSETZETITEL/${$config}{'titel '}/g;
+    s/ERSETZETITEL/${$config}{'titel'}/g;
     s/ERSETZEDBNAME/${$config}{'db-name'}/g;
     s/ERSETZEDBUSER/${$config}{'db-user'}/g;
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;
