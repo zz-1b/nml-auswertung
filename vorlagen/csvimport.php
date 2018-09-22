@@ -42,7 +42,8 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
           }
           $ergebnis->schreibeErgebnisse();
           echo "Die Ergebnisse sind erfolgreich gespeichert.<p>\n";
-          echo ' <a href="ergebnislisten.php">Alle Ergebnisdatensätze</a><p>';
+          echo ' <a href="./werteAus.php">Auswertung berechnen</a><p>';
+          echo ' <a href="./uebersicht.php">Zur Übersicht</a><p>';
         }
         else
           throw new \Exception("Datei leer ?", 1);

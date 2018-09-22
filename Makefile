@@ -1,4 +1,5 @@
 
+#DEPLOY_CFG = dblogin_details_lokal.mk
 #DEPLOY_CFG = dblogin_details_test.mk
 DEPLOY_CFG = dblogin_details.mk
 
@@ -21,8 +22,8 @@ all:	3rdparty $(GENERATED)
 	cd 3rdparty; wget http://fpdf.de/downloads/fpdf181.tgz; tar xzvf fpdf181.tgz
 	cd 3rdparty; wget https://code.jquery.com/jquery-3.3.1.min.js
 
-createdb.sql:	config.json generator.pl
-	perl generator.pl  --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD)  --gen db
+createdb.sql:	config.json generator.pl $(DEPLOY_CFG) Makefile
+	perl generator.pl  --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) $(DBGRANTS) --gen db
 
 adm:
 	mkdir adm
@@ -47,7 +48,7 @@ lnm-style.css: vorlagen/lnm-style.css
 	cp $< $@
 
 images/logo.svg: vorlagen/LNM_Logo_2018_trace.svg
-	mkdir images
+	mkdir -p images
 	cp $< $@
 
 serienergebnisse.html: vorlagen/serienergebnisse.html config.json $(DEPLOY_CFG)
@@ -69,7 +70,7 @@ pinstall: 3rdparty $(GENERATED)
 	 -av nml-auswertung/ $(DEPLOYTO)/
 
 clean:
-	rm -rf adm createdb.sql nml-auswertung
+	rm -rf $(GENERATED) adm image
 
 veryclean:
 	rm -rf 3rdparty

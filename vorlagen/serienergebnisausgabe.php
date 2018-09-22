@@ -26,9 +26,38 @@ print '<!DOCTYPE HTML>
       return filter_var($strs, FILTER_SANITIZE_STRING);
   }
 
+  function cleanstiwo($strs)
+  {
+    $ielig = array();
+    $ielig[0] = '/\xc4/i';
+    $ielig[1] = '/\xd6/i';
+    $ielig[2] = '/\xdc/i';
+    $ielig[3] = '/\xdf/i';
+    $ielig[4] = '/\xe4/i';
+    $ielig[5] = '/\xf6/i';
+    $ielig[6] = '/\xfc/i';
+
+    $utf8lig = array();
+    $utf8lig[0] = 'Ä';
+    $utf8lig[1] = 'Ö';
+    $utf8lig[2] = 'Ü';
+    $utf8lig[3] = 'ß';
+    $utf8lig[4] = 'ä';
+    $utf8lig[5] = 'ö';
+    $utf8lig[6] = 'ü';
+
+    return filter_var(preg_replace($ielig, $utf8lig, $strs), FILTER_SANITIZE_STRING);
+  }
+
   $serienid = cleanint($_GET['serienid']);
-  $stichwort = cleanstr($_GET['stichwort']);
+  $stichwort = cleanstiwo($_GET['stichwort']);
   $geschlecht = cleanstr($_GET['geschlecht']);
+  $anzahl = cleanint($_GET['anzahl']);
+  $format = 1;
+  if( strlen($_GET['format'])>0 )
+  {
+    $format = cleanint($_GET['format']);
+  }
 
 #echo 'Par: '.$veranstaltungsid.':'.$lauf.':'.$stichwort.':'.$geschlecht.':<p>';
   try
@@ -38,9 +67,9 @@ print '<!DOCTYPE HTML>
       try
        { # SQL fehler fangen
 
-          $sql = 'SELECT htmlhead from serienauswertungen WHERE serienid=:serienid;';
+          $sql = 'SELECT htmlhead from serienauswertungen WHERE serienid=:serienid AND format=:format;';
           $sth = $dbh->prepare($sql);
-          $sth->execute(array('serienid' => $serienid));
+          $sth->execute(array('serienid' => $serienid, 'format' => $format));
           $htmlhead = $sth->fetch()['htmlhead'];
 
           $sql = 'SELECT titel, urkundenid from serien WHERE serienid=:serienid;';
@@ -54,21 +83,31 @@ print '<!DOCTYPE HTML>
               WHERE e.serienid=:serienid
               AND r.serienid=e.serienid
               AND t.serienid=e.serienid
-              AND e.tnid=t.tnid AND e.tnid=r.tnid';
-          $querypar = array('serienid' => $serienid);
+              AND e.tnid=t.tnid AND e.tnid=r.tnid
+              AND e.format=:format';
           if (!empty($geschlecht)) {
               $sql = $sql.' AND t.geschlecht LIKE :geschlecht';
-              $querypar['geschlecht'] = '%'.$geschlecht.'%';
           }
           if (!empty($stichwort)) {
-              $sql = $sql.'
-                AND htmlrow LIKE :stichwort';
-              $querypar['stichwort'] = '%'.$stichwort.'%';
+              $sql = $sql.' AND htmlrow LIKE :stichwort';
           }
           $sql = $sql." ORDER BY r.gesamtplatz";
-
+          if (!empty($anzahl)) {
+              $sql = $sql.' LIMIT :anzahl';
+          }
           $sth = $dbh->prepare($sql);
-          $sth->execute($querypar);
+          $sth->bindValue(':serienid',(int)$serienid, PDO::PARAM_INT);
+          $sth->bindValue(':format',(int)$format, PDO::PARAM_INT);
+          if (!empty($geschlecht)) {
+            $sth->bindValue(':geschlecht', $geschlecht, PDO::PARAM_STR);
+          }
+          if (!empty($stichwort)) {
+            $sth->bindValue(':stichwort', '%'.$stichwort.'%', PDO::PARAM_STR);
+          }
+          if (!empty($anzahl)) {
+            $sth->bindValue(':anzahl',(int)$anzahl, PDO::PARAM_INT);
+          }
+          $sth->execute();
 
           echo '<table class=\'ergebnistabelle\'><tr class=\'ergebnistabellenkopf\'>'.$htmlhead;
           if ($veranstaltg['urkundenid']) {

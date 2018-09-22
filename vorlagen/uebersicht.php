@@ -33,8 +33,9 @@
 
   <h2>Links</h2>
   <ul>
+  <li><a href="../serienergebnisse.html" target="_">Aktuelle Auswertung ansehen</a>
   <li><a href="ergebnissehochladen.php">Ergebnisse hochladen</a>
-  <li><a href="werteAus.php">Auswertung</a>
+  <li><a href="werteAus.php">Auswertung berechnen</a>
   </ul>
 
   <h2>Veranstaltungen</h2>

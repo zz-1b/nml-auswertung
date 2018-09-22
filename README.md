@@ -53,8 +53,9 @@ Das Formular zum Hochladen der Ergebnisse wird unter "adm/ergebnissehochladen.ph
 Die Generatorskripte brauchen zwei Pakete, die auf Ubuntu-Systemen in der Regel
 nachinstalliert werden müssen:
 
-sudo apt-get install apache2-utils
-sudo apt-get install libtypes-path-tiny-perl
+sudo apt install apache2-utils
+sudo apt install libapache-htpasswd-perl
+sudo apt install libpath-tiny-perl
 
 Zufallstestdatengenerator:
 sudo apt-get install libmath-random-perl

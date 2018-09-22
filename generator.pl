@@ -175,8 +175,9 @@ CREATE TABLE serienrangliste
 CREATE TABLE serienauswertungen
 (
   serienid INT NOT NULL,
+  format INT NOT NULL,
   htmlhead TEXT NOT NULL,
-  CONSTRAINT PK_serienauswertungen PRIMARY KEY (serienid),
+  CONSTRAINT PK_serienauswertungen PRIMARY KEY (serienid, format),
   FOREIGN KEY (serienid) REFERENCES serien(serienid) ON DELETE CASCADE
 );
 
@@ -187,9 +188,10 @@ CREATE TABLE serienwebergebnisse
 (
   serienid INT NOT NULL,
   tnid INT NOT NULL,
+  format INT NOT NULL,
   htmlrow TEXT NOT NULL,
-  CONSTRAINT PK_serienwebergebnisse PRIMARY KEY (serienid, tnid),
-  FOREIGN KEY (serienid) REFERENCES serienauswertungen(serienid) ON DELETE CASCADE,
+  CONSTRAINT PK_serienwebergebnisse PRIMARY KEY (serienid, tnid, format),
+  FOREIGN KEY (serienid,format) REFERENCES serienauswertungen(serienid,format) ON DELETE CASCADE,
   FOREIGN KEY (tnid) REFERENCES serienteilnehmer(tnid) ON DELETE CASCADE
 );
 
@@ -303,6 +305,7 @@ my $result = GetOptions (
       "out:s" =>\$kwrout,
       "dbuser=s" => \$dbuser,
       "dbpasswd=s" => \$dbpasswd,
+      "dbgrants" => \$dbgrants,
       "dbname=s" => \$dbname,
       "uploadfolder=s" => \$ufolder,
       "htpasswd=s" => \$htpasswd,
@@ -321,6 +324,10 @@ if( $dbuser ne "" )
 if( $dbpasswd ne "")
 {
   ${$config}{'db-passwd'} = $dbpasswd;
+}
+if( $dbgrants )
+{
+  ${$config}{'db-grants'} = 1;
 }
 if( $ufolder ne "")
 {
