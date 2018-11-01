@@ -1,3 +1,12 @@
+<!DOCTYPE HTML>
+<!-- HTML5 -->
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="lnm-style.css">
+    <title>Ergebnisse der Laufserie Nord-Münsterland</title>
+</head>
+<body>
 <?php
 
 class SerienWertung
@@ -12,6 +21,17 @@ class SerienWertung
     $res_row = $this->dbh->query("SELECT max(serienid) from serien;")->fetch();
     $this->serienid = $res_row['max(serienid)'];
 
+    $this->dbh->exec('DELETE FROM letztedatensaetze');
+    $ds = $this->dbh->exec(
+    'INSERT INTO letztedatensaetze(veranstaltungsid, datensatzid)
+     SELECT veranstaltungsid, MAX(datensatzid) as datensatzid
+     FROM datensaetze
+     GROUP BY veranstaltungsid');
+
+    echo $ds." aktuelle Datensätze <p>\n";
+    flush();
+    ob_flush();
+
     echo "Ermittelung der Serienteilnehmer...<br>";
     flush();
 
@@ -25,7 +45,9 @@ class SerienWertung
             AND e.vorname=e2.vorname
             AND e.jahrgang=e2.jahrgang
             AND e.ordnungsnr=e2.ordnungsnr
-            AND e.geschlecht=e2.geschlecht');
+            AND e.geschlecht=e2.geschlecht
+            AND e.datensatzid in ( SELECT datensatzid FROM letztedatensaetze )
+            AND e2.datensatzid in ( SELECT datensatzid FROM letztedatensaetze )');
 
 
     echo $teilnehmer." Serienteilnehmer <p>";
@@ -66,16 +88,6 @@ class SerienWertung
        END )');
 
 
-    $this->dbh->exec('DELETE FROM letztedatensaetze');
-    $ds = $this->dbh->exec(
-    'INSERT INTO letztedatensaetze(veranstaltungsid, datensatzid)
-     SELECT veranstaltungsid, MAX(datensatzid) as datensatzid
-     FROM datensaetze
-     GROUP BY veranstaltungsid');
-
-     echo $ds." Datensätze <p>\n";
-     flush();
-
     try {
      $this->dbh->exec('DROP TABLE serieneinzelraenge');
     } catch (Exception $e) { }
@@ -92,6 +104,7 @@ class SerienWertung
 
      echo "Serienwertung:<br>\n";
      flush();
+     ob_flush();
 
     $this->dbh->exec('DELETE FROM serieneinzelergebnisse');
     $this->dbh->exec(
@@ -109,6 +122,7 @@ class SerienWertung
 
     echo "Zusammenfassen der Zeiten...<br>\n";
     flush();
+    ob_flush();
 
     try {
       $this->dbh->exec('DROP TABLE teilnahmezaehlung');
@@ -136,6 +150,7 @@ class SerienWertung
 
      print "Platzierungen...<br>\n";
      flush();
+     ob_flush();
 
     try
     {
@@ -215,6 +230,7 @@ class SerienWertung
   {
     echo "HTML-Formatierung<br>\n";
     flush();
+    ob_flush();
     $awtabelle=array();
     $sth=$this->dbh->prepare('SELECT r.tnid, r.serienzeit, r.bonuszeit, t.teilnahmen,
                                      t.vorname, t.nachname, r.gesamtplatz, r.mwplatz,
@@ -275,18 +291,28 @@ class SerienWertung
     $zeile.="<th>Bonuszeit</th>";
     $zeile.="<th>Serienwertung</th>\n";
 
+    $zeilekurz='<th>Platz</th><th>Name</th><th>Verein</th><th>Serien<br>wertung</th>\n';
     $this->dbh->exec('DELETE FROM serienauswertungen WHERE serienid='.$this->serienid);
 
-    $this->dbh->exec('INSERT INTO serienauswertungen (serienid, htmlhead)
-                      VALUES ('.$this->serienid.',\''.$zeile.'\');');
+    $this->dbh->exec('INSERT INTO serienauswertungen (serienid, format, htmlhead)
+                      VALUES ('.$this->serienid.',0 , \''.$zeile.'\');');
+    $this->dbh->exec('INSERT INTO serienauswertungen (serienid, format, htmlhead)
+                     VALUES ('.$this->serienid.',1 ,\''.$zeilekurz.'\');');
 
-    $sthw=$this->dbh->prepare("INSERT INTO serienwebergebnisse(serienid,tnid,htmlrow)
-                                VALUES (:serienid, :tnid,  :htmlrow);");
+
+    $this->dbh->exec('DELETE FROM serienwebergebnisse WHERE serienid='.$this->serienid);
+
+    $sthw=$this->dbh->prepare("INSERT INTO serienwebergebnisse(serienid,tnid,format,htmlrow)
+                              VALUES (:serienid, :tnid, :format, :htmlrow);");
 
     foreach($awtabelle as $tnid => $teilnehmer)
     {
       $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
             ."<td>".$teilnehmer["verein"]."</td>";
+
+      $zeilekurz="<td>".$teilnehmer["mwplatz"].".</td><td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
+            ."<td>".$teilnehmer["verein"]."</td>";
+
       foreach ($laufdaten as $row)
       {
         if(isset($teilnehmer[$row['name']]['inwertung']))
@@ -307,16 +333,26 @@ class SerienWertung
       $zeile.="<td>".substr($teilnehmer["bonuszeit"],3)."</td>";
       if( $teilnehmer['teilnahmen']>=4)
       {
-        $zeile.="<td>".$teilnehmer["serienzeit"]."</td>";
+        $szzeile="<td>".$teilnehmer["serienzeit"]."</td>";
       } else {
-        $zeile.="<td><strike>".$teilnehmer["serienzeit"]."</strike>Zu wenig Teilnahmen</td>";
+        $szzeile="<td><strike>".$teilnehmer["serienzeit"]."</strike>Zu wenig Teilnahmen</td>";
       }
+      $zeile.=$szzeile;
+      $zeilekurz.=$szzeile;
       $sthw->execute(array('tnid' => $tnid,
                            'serienid' => $this->serienid,
+                           'format'=> 0,
                            'htmlrow' => $zeile));
+      $sthw->execute(array('tnid' => $tnid,
+                           'serienid' => $this->serienid,
+                           'format'=> 1,
+                           'htmlrow' => $zeilekurz));
     }
   }
 }
 
-echo "Fertig!<br>\n"
+echo "Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>\n"
 ?>
+<a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>
+</body>
+</html>

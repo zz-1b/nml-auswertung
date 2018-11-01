@@ -31,10 +31,23 @@
 </head>
 <body>
 
+<div style="float:right">
+    <img style="width=30%" alt="NML-Logo" src="../images/logo.svg" />
+</div>
+
+<h1>Auswertungssystem ERSETZETITEL</H1>
+<p>
+  Sie sind angemeldet als <b>
+  <?php
+  echo $_SERVER['PHP_AUTH_USER'];
+?>
+</b></p>
+
   <h2>Links</h2>
   <ul>
-  <li><a href="ergebnissehochladen.php">Ergebnisse hochladen</a>
-  <li><a href="werteAus.php">Auswertung</a>
+  <li><a href="../serienergebnisse.html" target="_">Aktuelle Auswertung ansehen</a>
+  <li><a href="ergebnissehochladen.php" target="_">Neue Ergebnisse hochladen</a>
+  <li><a href="werteAus.php">Auswertung neu berechnen</a>
   </ul>
 
   <h2>Veranstaltungen</h2>

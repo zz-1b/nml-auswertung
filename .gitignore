@@ -3,6 +3,8 @@ passworte
 .htpasswd
 dblogin_details.mk
 dblogin_details_test.mk
+dblogin_details_lokal.mk
+lokaleInstallation
 
 #generierte Dateien
 *.csv
