@@ -1,5 +1,7 @@
 <?php
+header( 'Content-type: text/html; charset=utf-8' );
 require_once('ergebnis.php');
+require_once('serienwertung.php');
 
 $benutzer = $_SERVER['PHP_AUTH_USER'];
 $uploaddir = 'ERSETZEUPLOADFOLDER';
@@ -26,23 +28,35 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
       { # SQL fehler fangen
         if( ($zeile = fgets($handle, 1000)) !== false)
         {
-          $kopf = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding), ";");
+          $trenner=";";
+          if( strpos($zeile, $trenner) == FALSE )
+          {
+            $trenner=",";
+            if( strpos($zeile, $trenner) == FALSE )
+              throw new \Exception('Die Felder müssen mit ; oder , getrennt sein!');
+          }
+          $kopf = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding), $trenner);
           $kopfspalten=count($kopf);
           $ergebnis = new ErgebnisTabelle($benutzer, $uploadfile, $streckenid);
           $zeile=1;
           $ergebnis->erkenneSpalten($kopf);
           while (($zeile = fgets($handle, 1000)) !== false)
           {
-            $daten = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding), ";");
+            $daten = str_getcsv(mb_convert_encoding($zeile, "UTF-8", $csv_encoding),$trenner);
             $num = count($daten);
             if( $num != $kopfspalten )
-              throw new Exception('Falsche Spaltenzahl '.$num.' statt '.$kopfspalten.' in Zeile '.$zeile);
+              throw new \Exception('Falsche Spaltenzahl '.$num.' statt '.$kopfspalten.' in Zeile '.$zeile);
           $ergebnis->parseDaten($daten);
           $zeile++;
           }
           $ergebnis->schreibeErgebnisse();
           echo "Die Ergebnisse sind erfolgreich gespeichert.<p>\n";
-          echo ' <a href="./werteAus.php">Auswertung berechnen</a><p>';
+          flush();
+          ob_flush();
+          $wertung = new SerienWertung();
+          $wertung->HTMLAUswertung();
+
+          #echo ' <a href="./werteAus.php">Auswertung berechnen</a><p>';
           echo ' <a href="./uebersicht.php">Zur Übersicht</a><p>';
         }
         else

@@ -68,7 +68,7 @@ class ErgebnisTabelle
           if(isset($this->spaltenindizes[$name] ))
             throw new \Exception("Ein Spaltenname kommt doppelt vor.", 1);
           $this->spaltenindizes[$name] = $c;
-          print "Spalte ".$name." an Stelle ".$c."\n";
+          echo "Spalte ".$name." an Stelle ".$c."\n";
         }
       }
       if(!isset($this->spaltenindizes[$column] ))
@@ -82,6 +82,8 @@ class ErgebnisTabelle
     $nachname = $zeile[$this->spaltenindizes["Nachname"]];
     $vorname = $zeile[$this->spaltenindizes["Vorname"]];
     $jahrgang = $zeile[$this->spaltenindizes["Jahrgang"]];
+    if( intval($jahrgang<1900) )
+      throw new \Exception("Das Geburtsjahr muss vierstellig sein.", 1);
     $geschlecht = strtolower(substr($zeile[$this->spaltenindizes["Geschlecht"]],0,1)); # erstes Zeichen aus dem Zelleninhalt
     if( strcmp($geschlecht, "m")!=0 && strcmp($geschlecht, "w")!=0 )
       throw new \Exception("das Geschlecht muß als m/w angegeben sein.", 1);

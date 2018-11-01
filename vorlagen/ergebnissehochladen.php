@@ -1,5 +1,5 @@
 <?php
-
+  header( 'Content-type: text/html; charset=utf-8' );
   require_once('ergebnis.php');
   $benutzer = $_SERVER['PHP_AUTH_USER'];
   $auswahl = new DistanzAuswahl($benutzer);

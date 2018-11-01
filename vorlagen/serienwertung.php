@@ -21,6 +21,17 @@ class SerienWertung
     $res_row = $this->dbh->query("SELECT max(serienid) from serien;")->fetch();
     $this->serienid = $res_row['max(serienid)'];
 
+    $this->dbh->exec('DELETE FROM letztedatensaetze');
+    $ds = $this->dbh->exec(
+    'INSERT INTO letztedatensaetze(veranstaltungsid, datensatzid)
+     SELECT veranstaltungsid, MAX(datensatzid) as datensatzid
+     FROM datensaetze
+     GROUP BY veranstaltungsid');
+
+    echo $ds." aktuelle Datensätze <p>\n";
+    flush();
+    ob_flush();
+
     echo "Ermittelung der Serienteilnehmer...<br>";
     flush();
 
@@ -34,7 +45,9 @@ class SerienWertung
             AND e.vorname=e2.vorname
             AND e.jahrgang=e2.jahrgang
             AND e.ordnungsnr=e2.ordnungsnr
-            AND e.geschlecht=e2.geschlecht');
+            AND e.geschlecht=e2.geschlecht
+            AND e.datensatzid in ( SELECT datensatzid FROM letztedatensaetze )
+            AND e2.datensatzid in ( SELECT datensatzid FROM letztedatensaetze )');
 
 
     echo $teilnehmer." Serienteilnehmer <p>";
@@ -75,16 +88,6 @@ class SerienWertung
        END )');
 
 
-    $this->dbh->exec('DELETE FROM letztedatensaetze');
-    $ds = $this->dbh->exec(
-    'INSERT INTO letztedatensaetze(veranstaltungsid, datensatzid)
-     SELECT veranstaltungsid, MAX(datensatzid) as datensatzid
-     FROM datensaetze
-     GROUP BY veranstaltungsid');
-
-     echo $ds." Datensätze <p>\n";
-     flush();
-
     try {
      $this->dbh->exec('DROP TABLE serieneinzelraenge');
     } catch (Exception $e) { }
@@ -101,6 +104,7 @@ class SerienWertung
 
      echo "Serienwertung:<br>\n";
      flush();
+     ob_flush();
 
     $this->dbh->exec('DELETE FROM serieneinzelergebnisse');
     $this->dbh->exec(
@@ -118,6 +122,7 @@ class SerienWertung
 
     echo "Zusammenfassen der Zeiten...<br>\n";
     flush();
+    ob_flush();
 
     try {
       $this->dbh->exec('DROP TABLE teilnahmezaehlung');
@@ -145,6 +150,7 @@ class SerienWertung
 
      print "Platzierungen...<br>\n";
      flush();
+     ob_flush();
 
     try
     {
@@ -224,6 +230,7 @@ class SerienWertung
   {
     echo "HTML-Formatierung<br>\n";
     flush();
+    ob_flush();
     $awtabelle=array();
     $sth=$this->dbh->prepare('SELECT r.tnid, r.serienzeit, r.bonuszeit, t.teilnahmen,
                                      t.vorname, t.nachname, r.gesamtplatz, r.mwplatz,
@@ -344,7 +351,7 @@ class SerienWertung
   }
 }
 
-echo "Fertig!<br>\n"
+echo "Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>\n"
 ?>
 <a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>
 </body>
