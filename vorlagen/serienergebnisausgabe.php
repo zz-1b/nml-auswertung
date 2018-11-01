@@ -1,15 +1,5 @@
 <?php
 
-print '<!DOCTYPE HTML>
-<!-- HTML5 -->
-<html lang="de">
-<head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="lnm-style.css">
-    <title>Ergebnisse der Laufserie Nord-Münsterland</title>
-</head>
-<body>
-<table>';
 
   function cleanint($str)
   {
@@ -109,7 +99,29 @@ print '<!DOCTYPE HTML>
           }
           $sth->execute();
 
-          echo '<table class=\'ergebnistabelle\'><tr class=\'ergebnistabellenkopf\'>'.$htmlhead;
+          if( $format == 1)
+          {
+            print '<!DOCTYPE HTML>
+            <!-- HTML5 -->
+            <html lang="de">
+            <head>
+                <meta charset="utf-8">
+                <link rel="stylesheet" type="text/css" href="lnm-style-kurz.css">
+                <title>Ergebnisse der Laufserie Nord-Münsterland</title>
+            </head>
+            <body>
+            <small><table class=\'kurztabelle\'><tr class=\'ergebnistabellenkopf\'>'.$htmlhead;
+          } else {
+            print '<!DOCTYPE HTML>
+            <!-- HTML5 -->
+            <html lang="de">
+            <head>
+                <meta charset="utf-8">
+                <link rel="stylesheet" type="text/css" href="lnm-style.css">
+                <title>Ergebnisse der Laufserie Nord-Münsterland</title>
+            </head>
+            <body><table class=\'ergebnistabelle\'><tr class=\'ergebnistabellenkopf\'>'.$htmlhead;
+          }
           if ($veranstaltg['urkundenid']) {
               echo '<td>Urkunde</td>';
           }
@@ -127,6 +139,11 @@ print '<!DOCTYPE HTML>
               ++$rowcount;
           }
           echo '</table>';
+          if( $format == 1)
+          {
+            echo '</small>';
+          }
+
       } catch (Exception $e) {
           echo 'Failed: '.$e->getMessage();
           die();
