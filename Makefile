@@ -11,7 +11,7 @@ endif
 
 GENERATED = createdb.sql adm/ergebnissehochladen.php adm/ergebnis.php \
  adm/csvimport.php adm/serienwertung.php adm/werteAus.php adm/uebersicht.php \
- adm/.htaccess .htaccess .htpasswd lnm-style.css serienergebnisse.html serienergebnisausgabe.php \
+ adm/.htaccess .htaccess .htpasswd lnm-style.css lnm-style-kurz.css serienergebnisse.html serienergebnisausgabe.php \
  images/logo.svg
 
 all:	3rdparty $(GENERATED)
@@ -44,7 +44,7 @@ adm/.htaccess: adm config.json generator.pl vorlagen/.htaccess-adm
 .htaccess: adm config.json generator.pl vorlagen/.htaccess-main
 	perl generator.pl --in vorlagen/.htaccess-main --out .htaccess
 
-lnm-style.css: vorlagen/lnm-style.css
+%.css: vorlagen/%.css
 	cp $< $@
 
 images/logo.svg: vorlagen/LNM_Logo_2018_trace.svg
