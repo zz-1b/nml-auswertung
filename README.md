@@ -35,7 +35,7 @@ DEPLOYTO=www-data@webserver.provider.net:/server/html/nml-auswertung
 ```
 
 ### Eingabeformat ###
-Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w)und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Semikolon als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden (Trennzeichen sind diskutabel bzw. könnten einstellbar werden). Umlaute und Sonderzeichen sollen nach ISO-8859-1 kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. Wenn die 'Region und Sprache'-Einstellung auf 'Deutschland' steht, erhält man automatisch die richtige Zeichenkodierung und das Semikolon als Feldtrenner.
+Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w)und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Semikolon oder Komma als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden. Umlaute und Sonderzeichen sollen nach ISO-8859-1 kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. Wenn die 'Region und Sprache'-Einstellung auf 'Deutschland' steht, erhält man automatisch die richtige Zeichenkodierung und das Semikolon als Feldtrenner.
 ![alt text](CSVspeichern.png "Logo Title Text 1")
 
 Eine Beispieldatei:
