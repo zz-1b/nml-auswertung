@@ -8,6 +8,7 @@
 </head>
 <body>
 <?php
+require_once('urkunde.php');
 
 class SerienWertung
 {
@@ -75,8 +76,8 @@ class SerienWertung
        WHEN '.$jahr.'-jahrgang>=85 THEN \'85\'
        WHEN '.$jahr.'-jahrgang>=80 THEN \'80\'
        WHEN '.$jahr.'-jahrgang>=75 THEN \'75\'
-       WHEN '.$jahr.'-jahrgang>=70 THEN \'60\'
-       WHEN '.$jahr.'-jahrgang>=65 THEN \'55\'
+       WHEN '.$jahr.'-jahrgang>=70 THEN \'70\'
+       WHEN '.$jahr.'-jahrgang>=65 THEN \'65\'
        WHEN '.$jahr.'-jahrgang>=60 THEN \'60\'
        WHEN '.$jahr.'-jahrgang>=55 THEN \'55\'
        WHEN '.$jahr.'-jahrgang>=50 THEN \'50\'
@@ -347,6 +348,11 @@ class SerienWertung
                            'serienid' => $this->serienid,
                            'format'=> 1,
                            'htmlrow' => $zeilekurz));
+      if(count($laufdaten)>1) {
+        erzeugeUrkunde($tnid, $teilnehmer["vorname"]." ".$teilnehmer["nachname"],
+          $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
+          $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"]);
+       }
     }
   }
 }
