@@ -308,8 +308,12 @@ class SerienWertung
 
     foreach($awtabelle as $tnid => $teilnehmer)
     {
-      $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
-            ."<td>".$teilnehmer["verein"]."</td>";
+      if($teilnehmer['teilnahmen']>=2) {
+        $zeile="<td><a href=\"./nml-urkunden-2019/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf\">".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</a></td>";
+      } else {
+        $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>";
+      }
+      $zeile.="<td>".$teilnehmer["verein"]."</td>";
 
       $zeilekurz="<td>".$teilnehmer["mwplatz"].".</td><td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
             ."<td>".$teilnehmer["verein"]."</td>";
@@ -348,17 +352,16 @@ class SerienWertung
                            'serienid' => $this->serienid,
                            'format'=> 1,
                            'htmlrow' => $zeilekurz));
-      if(count($laufdaten)>1) {
+      if($teilnehmer['teilnahmen']>=2) {
         erzeugeUrkunde($tnid, $teilnehmer["vorname"]." ".$teilnehmer["nachname"],
           $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
           $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"]);
        }
     }
+    echo 'Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>'
+         .'<a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>\n';
   }
 }
-
-echo "Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>\n"
 ?>
-<a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>
 </body>
 </html>
