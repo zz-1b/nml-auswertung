@@ -88,6 +88,9 @@ class ErgebnisTabelle
     $jahrgang = $zeile[$this->spaltenindizes["Jahrgang"]];
     if( intval($jahrgang<1900) )
       throw new \Exception("Das Geburtsjahr muss vierstellig sein.", 1);
+    #bedingung fuer u14
+    if( intval(ERSETZEJAHR-$jahrgang<14) )
+      throw new \Exception("Der Teilnehmer/die Teilnehmerin ist zu jung. Mindestens U16 erforderlich!", 1);
     if( intval($jahrgang>2030) )
         throw new \Exception("Das Geburtsjahr ist nicht plausibel.", 1);
     $geschlecht = strtolower(substr($zeile[$this->spaltenindizes["Geschlecht"]],0,1)); # erstes Zeichen aus dem Zelleninhalt
@@ -97,7 +100,7 @@ class ErgebnisTabelle
     if( strlen($verein)>60 )
       throw new \Exception("Der Vereinsname darf nicht länger als 60 Zeichen sein.");
     $zeit = $zeile[$this->spaltenindizes["Zeit"]];
-    if( !preg_match('/([0]?[\d]):([012345][\d]?):[012345][\d]?(,[\d])?/',$zeit))
+    if( !preg_match('/([0]?[\d]):([\d][\d]?):[\d][\d]?(,[\d])?/',$zeit))
       throw new \Exception("Formatfehler: Die Zeit muss in der Form hh:mm:ss angegeben werden.");
     $sql->execute(array('datensatzid' => $this->dsid,
           'nachname' => htmlspecialchars($nachname),
