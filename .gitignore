@@ -15,3 +15,5 @@ createdb.sql
 3rdparty/*
 ajaxcrud.zip
 fpdf*.tgz
+*.bak
+/passworte2.txt

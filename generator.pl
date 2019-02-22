@@ -285,9 +285,18 @@ sub keyword_replace
     s/ERSETZEDBUSER/${$config}{'db-user'}/g;
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;
     s/ERSETZEUPLOADFOLDER/${$config}{'upload-folder'}/g;
+    s/ERSETZEPDFFOLDER/${$config}{'pdf-folder'}/g;
     s/ERSETZEJAHR/${$config}{'jahr'}/g;
     s/ERSETZEHTPASSWD/${$config}{'htpasswd'}/g;
-    print KWROUT;
+    if( ${$config}{'db-name'} =~ /test$/)
+    {
+      s/BACKGROUNDIMAGE/background-image: url\(\"images\/background.png\"\)/g;
+    }
+    else
+    {
+      s/BACKGROUNDIMAGE//g;
+    }
+     print KWROUT;
   }
   close KWRIN;
   close KWROUT;
@@ -308,6 +317,7 @@ my $result = GetOptions (
       "dbgrants" => \$dbgrants,
       "dbname=s" => \$dbname,
       "uploadfolder=s" => \$ufolder,
+      "pdffolder=s" => \$pfolder,
       "htpasswd=s" => \$htpasswd,
       "gen=s" => \$gen);
 
@@ -332,6 +342,10 @@ if( $dbgrants )
 if( $ufolder ne "")
 {
   ${$config}{'upload-folder'} = $ufolder;
+}
+if( $pfolder ne "")
+{
+  ${$config}{'pdf-folder'} = $pfolder;
 }
 if( $htpasswd ne "")
 {
