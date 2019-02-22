@@ -69,9 +69,9 @@ else
         }
         catch (Exception $e)
         {
-          echo "Der Ergebnisimport hat nicht funktioniert!\n";
-          echo "Fehler beim Import in Zeile ".$zeile.": ". $e->getMessage();
-          echo "Bitte das Dateiformat prüfen, korrigieren und neu hochladen.\n";
+          echo "\n<b>Der Ergebnisimport hat nicht funktioniert!</b>\n";
+          echo "Fehler beim Import in der Zeile: ".$zeile." ". $e->getMessage()."\n";
+          echo "Bitte die Daten bzw das Dateiformat prüfen, korrigieren und neu hochladen.\n";
           die();
           $dbh = null;
         }

@@ -65,12 +65,14 @@ class SerienWertung
     $this->dbh->exec(
       'UPDATE serienteilnehmer
        SET altersklasse=CONCAT(UPPER(geschlecht), CASE
+/*  Laufserie ab U16, Sonderregel: U16 und U18 werden zusammen gewertet
        WHEN '.$jahr.'-jahrgang<8 THEN \'KU8\'
        WHEN '.$jahr.'-jahrgang<10 THEN \'KU10\'
        WHEN '.$jahr.'-jahrgang<12 THEN \'KU12\'
        WHEN '.$jahr.'-jahrgang<14 THEN \'JU14\'
        WHEN '.$jahr.'-jahrgang<16 THEN \'JU16\'
-       WHEN '.$jahr.'-jahrgang<18 THEN \'JU18\'
+       WHEN '.$jahr.'-jahrgang<18 THEN \'JU18\' */
+       WHEN '.$jahr.'-jahrgang<18 THEN \'JU16/18\'
        WHEN '.$jahr.'-jahrgang<20 THEN \'JU20\'
        WHEN '.$jahr.'-jahrgang<23 THEN \'U23\'
        WHEN '.$jahr.'-jahrgang>=85 THEN \'85\'
@@ -100,6 +102,7 @@ class SerienWertung
      WHERE t.nachname=e.nachname
       AND t.vorname=e.vorname
       AND t.jahrgang=e.jahrgang
+      AND t.geschlecht=e.geschlecht
       AND d.datensatzid=e.datensatzid
      ORDER BY t.tnid, zeit ASC');
 
@@ -244,7 +247,6 @@ class SerienWertung
     $zeile=0;
     foreach ($daten as $row)
     {
-#      print "T ".$row['tnid']."   ".$row['serienzeit']."<br>\n";
       $awtabelle[$row['tnid']]=["serienzeit" => $row['serienzeit'],
                                 "teilnahmen" => $row['teilnahmen'],
                                 "bonuszeit" => $row['bonuszeit'],
@@ -269,7 +271,6 @@ class SerienWertung
     {
       $name=$row['name'];
       $datensatzid=$row['datensatzid'];
-#      print "<p>$datensatzid $name <br>\n";
       $sth = $this->dbh->prepare('SELECT t.tnid, e.zeit, e.inwertung as inwertung
                          FROM serienteilnehmer t, serieneinzelergebnisse e
                          WHERE t.tnid=e.tnid AND e.datensatzid='.$datensatzid);
@@ -306,9 +307,12 @@ class SerienWertung
     $sthw=$this->dbh->prepare("INSERT INTO serienwebergebnisse(serienid,tnid,format,htmlrow)
                               VALUES (:serienid, :tnid, :format, :htmlrow);");
 
+    # Urkunden vorheriger Auswertungen entfernten
+    array_map('unlink', glob("ERSETZEPDFFOLDER/nml-urkunde-ERSETZEJAHR-*.pdf"));
+
     foreach($awtabelle as $tnid => $teilnehmer)
     {
-      if($teilnehmer['teilnahmen']>=2) {
+      if($teilnehmer['teilnahmen']>=4) {
         $zeile="<td><a href=\"./nml-urkunden-2019/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf\">".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</a></td>";
       } else {
         $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>";
@@ -352,14 +356,14 @@ class SerienWertung
                            'serienid' => $this->serienid,
                            'format'=> 1,
                            'htmlrow' => $zeilekurz));
-      if($teilnehmer['teilnahmen']>=2) {
+      if($teilnehmer['teilnahmen']>=4) {
         erzeugeUrkunde($tnid, $teilnehmer["vorname"]." ".$teilnehmer["nachname"],
           $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
           $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"]);
        }
     }
     echo 'Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>'
-         .'<a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>\n';
+         .'<br><a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a><br>';
   }
 }
 ?>
