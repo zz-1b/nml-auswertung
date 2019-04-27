@@ -5,6 +5,8 @@ dblogin_details.mk
 dblogin_details_test.mk
 dblogin_details_lokal.mk
 lokaleInstallation
+*.bak
+passworte2.txt
 
 #generierte Dateien
 *.csv
@@ -15,5 +17,3 @@ createdb.sql
 3rdparty/*
 ajaxcrud.zip
 fpdf*.tgz
-*.bak
-/passworte2.txt
