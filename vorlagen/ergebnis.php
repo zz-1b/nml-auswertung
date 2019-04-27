@@ -80,15 +80,28 @@ class ErgebnisTabelle
     $sql = $this->dbh->prepare("INSERT INTO ergebnisse (datensatzid, nachname, vorname, jahrgang, geschlecht, verein, zeit)
                                     VALUES (:datensatzid, :nachname, :vorname, :jahrgang, :geschlecht, :verein, :zeit)");
     $nachname = $zeile[$this->spaltenindizes["Nachname"]];
+    if( strlen($nachname) == 0 || strlen($nachname)>40 )
+      throw new \Exception("Der Nachname darf nicht leer und nicht länger als 40 Zeichen sein.");
     $vorname = $zeile[$this->spaltenindizes["Vorname"]];
+    if( strlen($vorname) == 0 || strlen($vorname)>40 )
+      throw new \Exception("Der Vorname darf nicht leer und nicht länger als 40 Zeichen sein.");
     $jahrgang = $zeile[$this->spaltenindizes["Jahrgang"]];
     if( intval($jahrgang<1900) )
       throw new \Exception("Das Geburtsjahr muss vierstellig sein.", 1);
+    #bedingung fuer u14
+    if( intval(ERSETZEJAHR-$jahrgang<14) )
+      throw new \Exception("Der Teilnehmer/die Teilnehmerin ist zu jung. Mindestens U16 erforderlich!", 1);
+    if( intval($jahrgang>2030) )
+        throw new \Exception("Das Geburtsjahr ist nicht plausibel.", 1);
     $geschlecht = strtolower(substr($zeile[$this->spaltenindizes["Geschlecht"]],0,1)); # erstes Zeichen aus dem Zelleninhalt
     if( strcmp($geschlecht, "m")!=0 && strcmp($geschlecht, "w")!=0 )
       throw new \Exception("das Geschlecht muß als m/w angegeben sein.", 1);
     $verein = $zeile[$this->spaltenindizes["Verein"]];
+    if( strlen($verein)>60 )
+      throw new \Exception("Der Vereinsname darf nicht länger als 60 Zeichen sein.");
     $zeit = $zeile[$this->spaltenindizes["Zeit"]];
+    if( !preg_match('/([0]?[\d]):([\d][\d]?):[\d][\d]?(,[\d])?/',$zeit))
+      throw new \Exception("Formatfehler: Die Zeit muss in der Form hh:mm:ss angegeben werden.");
     $sql->execute(array('datensatzid' => $this->dsid,
           'nachname' => htmlspecialchars($nachname),
           'vorname' => htmlspecialchars($vorname),

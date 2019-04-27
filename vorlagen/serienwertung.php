@@ -8,6 +8,7 @@
 </head>
 <body>
 <?php
+require_once('urkunde.php');
 
 class SerienWertung
 {
@@ -64,19 +65,21 @@ class SerienWertung
     $this->dbh->exec(
       'UPDATE serienteilnehmer
        SET altersklasse=CONCAT(UPPER(geschlecht), CASE
+/*  Laufserie ab U16, Sonderregel: U16 und U18 werden zusammen gewertet
        WHEN '.$jahr.'-jahrgang<8 THEN \'KU8\'
        WHEN '.$jahr.'-jahrgang<10 THEN \'KU10\'
        WHEN '.$jahr.'-jahrgang<12 THEN \'KU12\'
        WHEN '.$jahr.'-jahrgang<14 THEN \'JU14\'
        WHEN '.$jahr.'-jahrgang<16 THEN \'JU16\'
-       WHEN '.$jahr.'-jahrgang<18 THEN \'JU18\'
+       WHEN '.$jahr.'-jahrgang<18 THEN \'JU18\' */
+       WHEN '.$jahr.'-jahrgang<18 THEN \'JU16/18\'
        WHEN '.$jahr.'-jahrgang<20 THEN \'JU20\'
        WHEN '.$jahr.'-jahrgang<23 THEN \'U23\'
        WHEN '.$jahr.'-jahrgang>=85 THEN \'85\'
        WHEN '.$jahr.'-jahrgang>=80 THEN \'80\'
        WHEN '.$jahr.'-jahrgang>=75 THEN \'75\'
-       WHEN '.$jahr.'-jahrgang>=70 THEN \'60\'
-       WHEN '.$jahr.'-jahrgang>=65 THEN \'55\'
+       WHEN '.$jahr.'-jahrgang>=70 THEN \'70\'
+       WHEN '.$jahr.'-jahrgang>=65 THEN \'65\'
        WHEN '.$jahr.'-jahrgang>=60 THEN \'60\'
        WHEN '.$jahr.'-jahrgang>=55 THEN \'55\'
        WHEN '.$jahr.'-jahrgang>=50 THEN \'50\'
@@ -99,6 +102,7 @@ class SerienWertung
      WHERE t.nachname=e.nachname
       AND t.vorname=e.vorname
       AND t.jahrgang=e.jahrgang
+      AND t.geschlecht=e.geschlecht
       AND d.datensatzid=e.datensatzid
      ORDER BY t.tnid, zeit ASC');
 
@@ -243,7 +247,6 @@ class SerienWertung
     $zeile=0;
     foreach ($daten as $row)
     {
-#      print "T ".$row['tnid']."   ".$row['serienzeit']."<br>\n";
       $awtabelle[$row['tnid']]=["serienzeit" => $row['serienzeit'],
                                 "teilnahmen" => $row['teilnahmen'],
                                 "bonuszeit" => $row['bonuszeit'],
@@ -260,7 +263,7 @@ class SerienWertung
     }
     $sth = $this->dbh->prepare("SELECT v.name,v.titel,datensatzid
                                 FROM veranstaltungen v,letztedatensaetze d
-                                WHERE v.veranstaltungsid=d.veranstaltungsid");
+                                WHERE v.veranstaltungsid=d.veranstaltungsid ORDER BY v.veranstaltungsid");
     $sth->execute();
     $laufdaten=$sth->fetchAll(PDO::FETCH_ASSOC);
 
@@ -268,7 +271,6 @@ class SerienWertung
     {
       $name=$row['name'];
       $datensatzid=$row['datensatzid'];
-#      print "<p>$datensatzid $name <br>\n";
       $sth = $this->dbh->prepare('SELECT t.tnid, e.zeit, e.inwertung as inwertung
                          FROM serienteilnehmer t, serieneinzelergebnisse e
                          WHERE t.tnid=e.tnid AND e.datensatzid='.$datensatzid);
@@ -305,14 +307,34 @@ class SerienWertung
     $sthw=$this->dbh->prepare("INSERT INTO serienwebergebnisse(serienid,tnid,format,htmlrow)
                               VALUES (:serienid, :tnid, :format, :htmlrow);");
 
+    # Urkunden vorheriger Auswertungen entfernten
+    array_map('unlink', glob("ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-*.pdf"));
+
+    $laufdatensaetze=count($laufdaten);
+
+    # Bedingung fuer Urkunden-Ausgabe
+    $veranstaltungsanzahl_row = $this->dbh->query("SELECT count(*) FROM veranstaltungen;")->fetch();
+    $urkunden_min_laufdatensaetze = $veranstaltungsanzahl_row['count(*)'];
+    $urkunden_min_teilnahmen = 4;
+    # Urkunden als Dateien ablegen oder just in time erzeugen ?
+    $onlineurkunden = 1; 
     foreach($awtabelle as $tnid => $teilnehmer)
     {
-      $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
-            ."<td>".$teilnehmer["verein"]."</td>";
+      if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
+        if( $onlineurkunden == 1 ) {
+            $zeile="<td><a href=\"onlineurkunde.php?tnid=".$tnid."&serienid=".$this->serienid."\">".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</a></td>";
+        } else {
+            $zeile="<td><a href=\"./nml-urkunden/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf\">".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</a></td>";
+        }
+      } else {
+        $zeile="<td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>";
+      }
+      $zeile.="<td>".$teilnehmer["verein"]."</td>";
 
       $zeilekurz="<td>".$teilnehmer["mwplatz"].".</td><td>".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</td>"
             ."<td>".$teilnehmer["verein"]."</td>";
 
+      $laufergebnisse = array(); # urkunde
       foreach ($laufdaten as $row)
       {
         if(isset($teilnehmer[$row['name']]['inwertung']))
@@ -320,6 +342,8 @@ class SerienWertung
          if( $teilnehmer[$row['name']]['inwertung']>0)
          {
            $zeile.="<td><b>".$teilnehmer[$row['name']]["zeit"]."</b></td>";
+           $titelnb = preg_replace("/<br>/"," ",preg_replace("/-<br>/","-",$row["titel"]));
+           $laufergebnisse[$titelnb]=$teilnehmer[$row['name']]["zeit"]; # f. Urkunde
          } else {
            $zeile.="<td>".$teilnehmer[$row['name']]["zeit"]."</td>";
          }
@@ -347,12 +371,19 @@ class SerienWertung
                            'serienid' => $this->serienid,
                            'format'=> 1,
                            'htmlrow' => $zeilekurz));
+      if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
+        $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf";
+        erzeugeUrkunde($teilnehmer["vorname"]." ".$teilnehmer["nachname"],
+          $teilnehmer["verein"],
+          $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
+          $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"],
+          substr($teilnehmer["bonuszeit"],3), $laufergebnisse, $ort);
+       }
     }
+    echo 'Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>'
+         .'<br><a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a><br>';
   }
 }
-
-echo "Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>\n"
 ?>
-<a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a>
 </body>
 </html>
