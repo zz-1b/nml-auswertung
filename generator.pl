@@ -285,7 +285,7 @@ sub keyword_replace
     s/ERSETZEDBUSER/${$config}{'db-user'}/g;
     s/ERSETZEDBPASSWD/${$config}{'db-passwd'}/g;
     s/ERSETZEUPLOADFOLDER/${$config}{'upload-folder'}/g;
-    s/ERSETZEPDFFOLDER/${$config}{'pdf-folder'}/g;
+    s/ERSETZEDEPLOYFOLDER/${$config}{'deploy-folder'}/g;
     s/ERSETZEJAHR/${$config}{'jahr'}/g;
     s/ERSETZEHTPASSWD/${$config}{'htpasswd'}/g;
     if( ${$config}{'db-name'} =~ /test$/)
@@ -317,7 +317,7 @@ my $result = GetOptions (
       "dbgrants" => \$dbgrants,
       "dbname=s" => \$dbname,
       "uploadfolder=s" => \$ufolder,
-      "pdffolder=s" => \$pfolder,
+      "deployfolder=s" => \$dfolder,
       "htpasswd=s" => \$htpasswd,
       "gen=s" => \$gen);
 
@@ -341,11 +341,11 @@ if( $dbgrants )
 }
 if( $ufolder ne "")
 {
-  ${$config}{'upload-folder'} = $ufolder;
+   ${$config}{'upload-folder'} = $ufolder;
 }
-if( $pfolder ne "")
+if( $dfolder ne "")
 {
-  ${$config}{'pdf-folder'} = $pfolder;
+  ${$config}{'deploy-folder'} = $dfolder;
 }
 if( $htpasswd ne "")
 {

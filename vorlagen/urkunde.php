@@ -1,28 +1,51 @@
 <?php
 require('fpdf.php');
 
-function erzeugeUrkunde($tnid, $name, $zeit, $platz, $ak, $akplatz)
+function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $laufergebnisse, $ausgabe)
 {
-  try { # SQL fehler fangen
-
-        $linksrand=95;
-        $oben=120;
-        $pdf = new FPDF();
+  try {
+        $linksrand=25;
+        $oben=95;
+        $w=120;
+        $y=$oben;
+        $pdf = new FPDF('P','mm','A4');
         $pdf->AddPage();
-        $pdf->Image('UrkundeERSETZEJAHR.jpg',5,5,200);
+        $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde2019-Michaela.png',5,5,200);
         $pdf->SetFont('Arial','B',32);
-        $pdf->SetXY($linksrand,$oben);
-        $pdf->Cell(80,40,utf8_decode($name));
+        $pdf->SetXY($linksrand,$y);
+        $pdf->MultiCell(160,16,utf8_decode($platz).". Platz",0,'C');
+        $pdf->SetXY($linksrand,$y+16);
+        $pdf->MultiCell(160,16,utf8_decode($name),0,'C');
+
         $pdf->SetFont('Arial','B',16);
-        $pdf->SetXY($linksrand,$oben+50);
-        $pdf->Cell(80,10,utf8_decode(""));
-        $pdf->SetXY($linksrand,$oben+70);
-        $pdf->Cell(80,10,"Serienwertung: ".utf8_decode($zeit));
-        $pdf->SetXY($linksrand,$oben+80);
-        $pdf->Cell(80,10,"Gesamtwertung: Platz ".utf8_decode($platz));
-        $pdf->SetXY($linksrand,$oben+90);
-        $pdf->Cell(80,10,"Altersklassenplatz ".utf8_decode($akplatz)." (".utf8_decode($ak).")");
-        $pdf->Output("F","ERSETZEPDFFOLDER/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf");
+        $h2=12;
+        $y=$oben+32;
+        $pdf->SetXY($linksrand,$y);
+        $pdf->MultiCell(160,$h2,utf8_decode($verein),0,'C');
+        $y=$y+$h2;
+        $pdf->SetXY($linksrand,$y);
+        $pdf->MultiCell(160,$h2,utf8_decode($akplatz).". Platz in der Altersklasse ".utf8_decode($ak),0,'C');
+        $y=$y+$h2;
+        $pdf->SetXY($linksrand,$y);
+        $pdf->MultiCell(160,$h2,utf8_decode($zeit),0,'C');
+        $y=$y+$h2;
+        foreach($laufergebnisse as $lauf => $lzeit)
+          {
+            $pdf->SetXY($linksrand+20,$y);
+            $pdf->MultiCell(120,$h2,utf8_decode($lauf),0,'L');
+            $pdf->SetXY($linksrand+20,$y);
+            $pdf->MultiCell(120,$h2,utf8_decode($lzeit),0,'R');
+            $y=$y+$h2;
+          }
+        $pdf->SetXY($linksrand,$y);
+        $pdf->MultiCell(160,$h2,"Bonus: ".utf8_decode($bonus),0,'C');
+        $y=$y+$h2;
+        if( strcmp($ausgabe,"") != 0) {
+            $pdf->Output("F",$ausgabe);
+        } else {
+            $pdf->Output("I","Urkunde-Nord-Muensterland-2019.pdf");
+        }
+
     } catch (Exception $e) {
       echo "Failed: " . $e->getMessage();
       die();
