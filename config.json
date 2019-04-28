@@ -17,7 +17,7 @@
       }]
     }, {
       "name": "neuenkirchenlauf",
-      "titel": "VR-Bank-Lauf<br>“Rund um den<br>Offlumer See”",
+      "titel": "VR-Bank-Lauf<br>„Rund um den<br>Offlumer See”",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
@@ -48,7 +48,7 @@
       }]
     }, {
       "name": "allerheiligenlauf",
-      "titel": "35. Allerheiligenlauf<br>Nordwalde",
+      "titel": "Allerheiligenlauf<br>Nordwalde",
       "strecken" : [{
         "name":"10km",
         "distanz" : "10000"

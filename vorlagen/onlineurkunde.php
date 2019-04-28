@@ -1,5 +1,5 @@
 <?php
-    require('adm/urkunde.php');
+    require_once('adm/urkunde.php');
 
     function cleanint($str)
     {
