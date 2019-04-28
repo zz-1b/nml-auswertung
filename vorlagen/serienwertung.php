@@ -319,7 +319,7 @@ class SerienWertung
     ob_flush();
 
     # Urkunden vorheriger Auswertungen entfernten
-    array_map('unlink', glob("ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-*.pdf"));
+    array_map('unlink', glob("ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-*.pdf"));
 
     $laufdatensaetze=count($laufdaten);
 
@@ -399,7 +399,7 @@ class SerienWertung
         ob_flush();
 
         if($onlineurkunden==0) {
-            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf";
+            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-".$tnid.".pdf";
             erzeugeUrkunde($teilnehmer["vorname"]." ".$teilnehmer["nachname"],
             $teilnehmer["verein"], $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
             $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"],
