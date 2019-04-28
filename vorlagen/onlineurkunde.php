@@ -53,11 +53,12 @@
                 $titelnb = preg_replace("/<br>/"," ",preg_replace("/-<br>/","-",$row["titel"]));
                 $laufergebnisse[$titelnb] = $row['zeit'];
             }
- 
+            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-".$tnid.".pdf";
+
             erzeugeUrkunde($tnres['vorname']." ".$tnres['nachname'],
                 $tnres['verein'], $elres['serienzeit'], $elres['mwplatz'],
                 $tnres['altersklasse'], $elres['altersklassenplatz'],
-                substr($elres['bonuszeit'],3), $laufergebnisse, "");
+                substr($elres['bonuszeit'],3), $laufergebnisse, $ort);
 
             } catch (Exception $e) {
             echo "Failed: " . $e->getMessage();
