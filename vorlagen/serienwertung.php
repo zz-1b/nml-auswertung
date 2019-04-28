@@ -261,6 +261,10 @@ class SerienWertung
                                 "jahrgang" => $row['jahrgang']
                                ];
     }
+    echo "Teilnehmerdaten geholt...<br>\n";
+    flush();
+    ob_flush();
+
     $sth = $this->dbh->prepare("SELECT v.name,v.titel,datensatzid
                                 FROM veranstaltungen v,letztedatensaetze d
                                 WHERE v.veranstaltungsid=d.veranstaltungsid ORDER BY v.veranstaltungsid");
@@ -281,6 +285,9 @@ class SerienWertung
         $awtabelle[$row["tnid"]][$name] = [ "zeit" => $row['zeit'], "inwertung" => $row['inwertung']];
       }
     }
+    echo "Einzelergebnisse geholt...<br>\n";
+    flush();
+    ob_flush();
 
     $zeile='<th>Name</th><th>Verein</th>';
     foreach ($laufdaten as $row)
@@ -307,17 +314,26 @@ class SerienWertung
     $sthw=$this->dbh->prepare("INSERT INTO serienwebergebnisse(serienid,tnid,format,htmlrow)
                               VALUES (:serienid, :tnid, :format, :htmlrow);");
 
+    echo "Alte Urkunden Löschen...<br>\n";
+    flush();
+    ob_flush();
+
     # Urkunden vorheriger Auswertungen entfernten
     array_map('unlink', glob("ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-*.pdf"));
 
     $laufdatensaetze=count($laufdaten);
 
     # Bedingung fuer Urkunden-Ausgabe
-    $veranstaltungsanzahl_row = $this->dbh->query("SELECT count(*) FROM veranstaltungen;")->fetch();
-    $urkunden_min_laufdatensaetze = $veranstaltungsanzahl_row['count(*)'];
+    $veranstaltungsanzahl_row = $this->dbh->query("SELECT count(veranstaltungsid) FROM veranstaltungen")->fetch();
+    $urkunden_min_laufdatensaetze = $veranstaltungsanzahl_row['count(veranstaltungsid)'];
     $urkunden_min_teilnahmen = 4;
     # Urkunden als Dateien ablegen oder just in time erzeugen ?
     $onlineurkunden = 1; 
+
+    echo "Min. ".$urkunden_min_laufdatensaetze." für Urkundenausgabe.<br>\n";
+    flush();
+    ob_flush();
+
     foreach($awtabelle as $tnid => $teilnehmer)
     {
       if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
@@ -372,13 +388,25 @@ class SerienWertung
                            'format'=> 1,
                            'htmlrow' => $zeilekurz));
       if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
-        $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf";
-        erzeugeUrkunde($teilnehmer["vorname"]." ".$teilnehmer["nachname"],
-          $teilnehmer["verein"],
-          $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
-          $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"],
-          substr($teilnehmer["bonuszeit"],3), $laufergebnisse, $ort);
+        echo "Erzeuge Urkunde für TN ".$tnid
+        ." ".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]
+        ."V ".$teilnehmer["verein"]
+        ."S ".$teilnehmer["serienzeit"]." ".$teilnehmer["mwplatz"]
+        ."AK ".$teilnehmer["altersklasse"]." ".$teilnehmer["altersklassenplatz"]
+        ."B ".substr($teilnehmer["bonuszeit"],3)
+        ."<br>\n";
+        flush();
+        ob_flush();
+
+        if($onlineurkunden==0) {
+            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/nml-urkunde-ERSETZEJAHR-".$tnid.".pdf";
+            erzeugeUrkunde($teilnehmer["vorname"]." ".$teilnehmer["nachname"],
+            $teilnehmer["verein"], $teilnehmer["serienzeit"], $teilnehmer["mwplatz"],
+            $teilnehmer["altersklasse"], $teilnehmer["altersklassenplatz"],
+            substr($teilnehmer["bonuszeit"],3), $laufergebnisse, $ort);
+          }
        }
+       
     }
     echo 'Fertig!<br><b>Die Serienwertung ist neu berechnet worden und steht ab sofort online.</b>'
          .'<br><a href="./uebersicht.php">Zur&uuml;ck zur &Uuml;bersicht</a><br>';

@@ -31,10 +31,10 @@ function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $l
         $y=$y+$h2;
         foreach($laufergebnisse as $lauf => $lzeit)
           {
-            $pdf->SetXY($linksrand+20,$y);
-            $pdf->MultiCell(120,$h2,utf8_decode($lauf),0,'L');
-            $pdf->SetXY($linksrand+20,$y);
-            $pdf->MultiCell(120,$h2,utf8_decode($lzeit),0,'R');
+            $pdf->SetXY($linksrand,$y);
+            $pdf->MultiCell(160,$h2,mb_convert_encoding( $lauf, 'Windows-1252', 'UTF-8'),0,'L');
+            $pdf->SetXY($linksrand,$y);
+            $pdf->MultiCell(160,$h2,utf8_decode($lzeit),0,'R');
             $y=$y+$h2;
           }
         $pdf->SetXY($linksrand,$y);
