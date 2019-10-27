@@ -72,7 +72,7 @@ pinstall: 3rdparty $(GENERATED)
 	mkdir -p nml-auswertung/3rdparty/font
 	cp -p 3rdparty/fpdf181/fpdf* nml-auswertung/3rdparty/
 	cp -rp 3rdparty/fpdf181/font nml-auswertung/3rdparty/
-	cp urkunde/Urkunde2019-Michaela.png adm/
+	cp $(URKUNDE) adm/Urkunde.png
 	cp -rp adm nml-auswertung/
 	cp .htaccess nml-auswertung/
 	cp images/background.png nml-auswertung/images

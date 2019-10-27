@@ -15,7 +15,6 @@ function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $l
 {
   try
   {
-      $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-".$tnid.".pdf";
       if(!file_exists($ausgabe)) {
           $linksrand=25;
           $oben=95;
@@ -23,7 +22,7 @@ function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $l
           $y=$oben;
           $pdf = new FPDF('P','mm','A4');
           $pdf->AddPage();
-          $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde2019-Michaela.png',5,5,200);
+          $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde.png',5,5,200);
           $pdf->SetFont('Arial','B',32);
           $pdf->SetXY($linksrand,$y);
           $pdf->MultiCell(160,16,utf8_decode($platz).". Platz",0,'C');
