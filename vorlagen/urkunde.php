@@ -22,7 +22,7 @@ function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $l
           $y=$oben;
           $pdf = new FPDF('P','mm','A4');
           $pdf->AddPage();
-          $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde.png',5,5,200);
+          $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde.jpg',5,5,200);
           $pdf->SetFont('Arial','B',32);
           $pdf->SetXY($linksrand,$y);
           $pdf->MultiCell(160,16,utf8_decode($platz).". Platz",0,'C');

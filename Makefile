@@ -1,7 +1,7 @@
 
 #DEPLOY_CFG = dblogin_details_lokal.mk
-DEPLOY_CFG = dblogin_details_test.mk
-#DEPLOY_CFG = dblogin_details.mk
+#DEPLOY_CFG = dblogin_details_test.mk
+DEPLOY_CFG = dblogin_details.mk
 
 include $(DEPLOY_CFG)
 
@@ -65,14 +65,14 @@ install:	3rdparty $(GENERATED)
 	--exclude=".*" --exclude="*~" --exclude="vorlagen" --exclude "dblogin_*.mk" \
 	 -av . $(DEPLOYTO)/.
 
-pinstall: 3rdparty $(GENERATED)
+pinstall: 3rdparty $(GENERATED) $(URKUNDE)
 	rm -rf nml-auswertung; mkdir -p nml-auswertung/adm; mkdir -p nml-auswertung/images
 	for i in $(GENERATED); do cp $$i nml-auswertung/$$i ; done
 	cp 3rdparty/jquery* nml-auswertung/jquery.min.js
 	mkdir -p nml-auswertung/3rdparty/font
 	cp -p 3rdparty/fpdf181/fpdf* nml-auswertung/3rdparty/
 	cp -rp 3rdparty/fpdf181/font nml-auswertung/3rdparty/
-	cp $(URKUNDE) adm/Urkunde.png
+	cp $(URKUNDE) adm/Urkunde.jpg
 	cp -rp adm nml-auswertung/
 	cp .htaccess nml-auswertung/
 	cp images/background.png nml-auswertung/images
