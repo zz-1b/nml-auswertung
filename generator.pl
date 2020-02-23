@@ -100,6 +100,7 @@ CREATE TABLE ergebnisse
   verein CHAR(60) NOT NULL,
   zeit TIME NOT NULL,
   ordnungsnr INT NOT NULL DEFAULT 1,
+  serienteilnahme BOOL NOT NULL,
   CONSTRAINT PK_eindeutige_Person PRIMARY KEY ( datensatzid, nachname, vorname, jahrgang, geschlecht ),
   FOREIGN KEY (datensatzid) REFERENCES datensaetze(datensatzid) ON DELETE CASCADE
 );
@@ -117,6 +118,7 @@ CREATE TABLE serienteilnehmer
   vorname CHAR(40) NOT NULL,
   jahrgang YEAR(4) NOT NULL,
   geschlecht ENUM('m','w') NOT NULL,
+  erstmeldung TIMESTAMP NOT NULL DEFAULT 0,
   -- notnagel zur identifikation bei namens/jahrgangsgleichheit
   ordnungsnr INT NOT NULL,
   verein CHAR(60),
@@ -230,8 +232,9 @@ $sql.="INSERT INTO serien (titel) VALUES ('$serientitel');\n";
   {
     my $laufname = ${$lauf}{'name'};
     my $lauftitel = ${$lauf}{'titel'};
-    my $insert="INSERT INTO veranstaltungen (name,titel,serienid)
-                SELECT '$laufname','$lauftitel',max(serienid) as serienid
+    my $zeit =  ${$lauf}{'zeit'};
+    my $insert="INSERT INTO veranstaltungen (name,titel,zeit,serienid)
+                SELECT '$laufname','$lauftitel','$zeit',max(serienid) as serienid
                 FROM serien;";
     $sql.=$insert."\n";
     my @strecken=@{${$lauf}{'strecken'}};

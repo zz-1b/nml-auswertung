@@ -7,28 +7,32 @@
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
-      }]
+      }],
+      "zeit" : "2020-05-08"
     }, {
       "name": "altstadtlauf",
       "titel": "Steinfurter<br>Altstadt<br>Abendlauf",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
-      }]
+      }],
+      "zeit" : "2020-06-13"
     }, {
       "name": "neuenkirchenlauf",
       "titel": "VR-Bank-Lauf<br>„Rund um den<br>Offlumer See”",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
-      }]
+      }],
+      "zeit" : "2020-06-19"
     }, {
       "name": "aaseelauf",
       "titel": "Abendlauf<br>„Rund um<br>den Aasee“",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
-      }]
+      }],
+      "zeit" : "2020-08-15"
     }, {
       "name": "berglauf",
       "titel": "Altenberger<br>Volksbank-<br>Berglauf",
@@ -38,29 +42,33 @@
       },{
         "name":"5km",
         "distanz":"5000"
-      }]
+      }],
+      "zeit" : "2020-08-29"
     }, {
       "name": "kirmeslauf",
       "titel": "Saerbecker<br>Kirmeslauf",
       "strecken" : [{
         "name":"10km",
         "distanz":"10000"
-      }]
+      }],
+      "zeit" : "2020-10-03"
     }, {
       "name": "allerheiligenlauf",
       "titel": "Allerheiligenlauf<br>Nordwalde",
       "strecken" : [{
         "name":"10km",
         "distanz" : "10000"
-      }]
+      }],
+      "zeit" : "2020-10-31"
     }, {
       "name": "adventslauf",
       "titel": "Mesumer<br>Adventslauf",
       "strecken" : [{
         "name":"10km",
         "distanz" : "10000"
-      }]
+      }],
+      "zeit" : "2020-11-28"
     }
   ],
-  "jahr":"2019"
+  "jahr":"2020"
 }
