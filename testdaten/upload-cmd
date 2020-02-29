@@ -1,0 +1,18 @@
+#!/bin/bash
+lauf="$1"
+datei="$2" 
+if ( test -z "$lauf" || test -z "$datei");
+then
+ echo $0 "<laufname> <csv-ergebnisse>"
+elif ( ! test -r $datei )
+then
+ echo $datei nicht lesbar.
+else
+ credentials=$(grep $lauf passworte2.txt)
+
+ curl -u "$credentials" https://laufab7.uber.space/nml-auswertung20-test/adm/ergebnissehochladen.php -o /tmp/t.html
+ sed -E "s/.*\"STRECKENID\" value=\"(.)\".*/STRECKENID=\1/ w /tmp/sid" /tmp/t.html
+ sid=`cat /tmp/sid`;
+ curl -u "$credentials" -F "tnbedingungen=on" -F $sid -F "userfile=@$datei" https://laufab7.uber.space/nml-auswertung20-test/adm/csvimport.php
+fi
+
