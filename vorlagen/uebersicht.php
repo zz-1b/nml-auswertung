@@ -48,7 +48,10 @@
   <li><a href="../serienergebnisse.html" target="_">Aktuelle Auswertung ansehen</a>
   <li><a href="ergebnissehochladen.php" target="_">Neue Ergebnisse hochladen</a>
   <li><a href="werteAus.php">Auswertung neu berechnen</a>
-  </ul>
+  <li><a href="ci/index.php/main/korrekturen/">Berichtigungen eintragen</a>
+  <li><a href="ci/index.php/main/orgamail/">Mailbenachrichtigungen verwalten</a>
+  <li><a href="../serienergebnisausgabe.php?serienid=1&anzahl=6&format=2">Urkunden Plätze M/W 1-3 zum Ausdruck ohne Hintergrund</a>
+</ul>
 
   <h2>Veranstaltungen</h2>
   <table class="data-table">

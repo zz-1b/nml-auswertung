@@ -1,7 +1,7 @@
 
 #DEPLOY_CFG = dblogin_details_lokal.mk
-#DEPLOY_CFG = dblogin_details_test.mk
-DEPLOY_CFG = dblogin_details.mk
+DEPLOY_CFG = dblogin_details_test.mk
+#DEPLOY_CFG = dblogin_details.mk  Achtung! noch Uberspace 6
 
 include $(DEPLOY_CFG)
 
@@ -15,12 +15,36 @@ GENERATED = createdb.sql adm/ergebnissehochladen.php adm/ergebnis.php \
  adm/.htaccess .htaccess .htpasswd lnm-style.css lnm-style-kurz.css serienergebnisse.html serienergebnisausgabe.php \
  images/logo.svg onlineurkunde.php
 
-all:	3rdparty $(GENERATED)
+all:	3rdparty $(GENERATED) adm/ci $(URKUNDE) adm/fpdf.php
 
 3rdparty:
 	mkdir -p 3rdparty
 	cd 3rdparty; wget http://fpdf.de/downloads/fpdf181.tgz; tar xzvf fpdf181.tgz
 	cd 3rdparty; wget https://code.jquery.com/jquery-3.3.1.min.js
+
+
+adm/ci: vendor/CodeIgniter-3.1.9 vendor/grocery-crud-1.6.3 $(shell find vorlagen/adm/ci.tmpl) $(DEPLOY_CFG)
+	mkdir -p adm/ci
+	rsync --recursive vendor/CodeIgniter-3.1.9/* adm/ci/
+	rsync --recursive vendor/grocery-crud-1.6.3/* adm/ci/
+	rsync --recursive vorlagen/adm/ci.tmpl/* adm/ci/
+	perl generator.pl --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) \
+	--uploadfolder $(UPLOADFOLDER) --deployfolder $(DEPLOYFOLDER) \
+	--in vorlagen/adm/ci.tmpl/application/config/database.php \
+	--out adm/ci/application/config/database.php
+	perl generator.pl --cibaseurl $(CIBASEURL) \
+	--in vorlagen/adm/ci.tmpl/application/config/config.php \
+	--out adm/ci/application/config/config.php
+	touch adm/ci
+
+#Die zip-Dateien in vendor/ fallen vom Himmel
+
+vendor/CodeIgniter-3.1.9: vendor/CodeIgniter-3.1.9.zip
+	cd vendor; unzip -x CodeIgniter-3.1.9.zip
+	touch $@
+vendor/grocery-crud-1.6.3: vendor/grocery-crud-1.6.3.zip
+	cd vendor; unzip -x grocery-crud-1.6.3.zip
+	touch $@
 
 createdb.sql:	config.json generator.pl $(DEPLOY_CFG) Makefile
 	perl generator.pl  --dbname $(DBNAME) --dbuser $(DBUSER) --dbpasswd $(DBPASSWD) $(DBGRANTS) --gen db
@@ -65,7 +89,7 @@ install:	3rdparty $(GENERATED)
 	--exclude=".*" --exclude="*~" --exclude="vorlagen" --exclude "dblogin_*.mk" \
 	 -av . $(DEPLOYTO)/.
 
-pinstall: 3rdparty $(GENERATED) $(URKUNDE)
+pinstall: all
 	rm -rf nml-auswertung; mkdir -p nml-auswertung/adm; mkdir -p nml-auswertung/images
 	for i in $(GENERATED); do cp $$i nml-auswertung/$$i ; done
 	cp 3rdparty/jquery* nml-auswertung/jquery.min.js

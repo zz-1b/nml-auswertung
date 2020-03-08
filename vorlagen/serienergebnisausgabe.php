@@ -99,7 +99,7 @@
           }
           $sth->execute();
 
-          if( $format == 1)
+          if( $format >= 1)
           {
             print '<!DOCTYPE HTML>
             <!-- HTML5 -->
@@ -139,7 +139,7 @@
               ++$rowcount;
           }
           echo '</table>';
-          if( $format == 1)
+          if( $format >= 1)
           {
             echo '</small>';
           }

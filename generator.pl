@@ -209,6 +209,32 @@ CREATE TABLE webergebnisse
   CONSTRAINT PK_webergebnisse PRIMARY KEY (datensatzid, tnid)
 );
 
+CREATE TABLE korrekturen
+(
+  nkid INT AUTO_INCREMENT PRIMARY KEY,
+  eintragszeit TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  autor CHAR(40),
+  nachname CHAR(40) NOT NULL,
+  vorname CHAR(40) NOT NULL,
+  jahrgang YEAR(4) NOT NULL,
+  geschlecht ENUM('m','w') NOT NULL,
+  verein CHAR(60) NOT NULL,
+  ordnungsnr INT NOT NULL DEFAULT 1,
+  nachnamekorrigiert CHAR(40),
+  vornamekorrigiert CHAR(40),
+  jahrgangkorrigiert YEAR(4),
+  geschlechtkorrigiert ENUM('m','w'),
+  vereinkorrigiert CHAR(60),
+  bemerkungen TEXT
+);
+
+CREATE TABLE orgamail
+(
+  mailid INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) CHARACTER SET utf8
+);
+
+
 ";
 # Evtl. Rechte vergebnen
   if(${$config}{'db-grants'} )
@@ -291,6 +317,7 @@ sub keyword_replace
     s/ERSETZEDEPLOYFOLDER/${$config}{'deploy-folder'}/g;
     s/ERSETZEJAHR/${$config}{'jahr'}/g;
     s/ERSETZEHTPASSWD/${$config}{'htpasswd'}/g;
+    s/CIBASEURL/${$config}{'cibaseurl'}/g;
     if( ${$config}{'db-name'} =~ /test$/)
     {
       s/BACKGROUNDIMAGE/background-image: url\(\"images\/background.png\"\)/g;
@@ -315,6 +342,7 @@ my $htpasswd="";
 my $result = GetOptions (
       "in:s" =>\$kwrin,
       "out:s" =>\$kwrout,
+      "cibaseurl=s" => \$cibaseurl,
       "dbuser=s" => \$dbuser,
       "dbpasswd=s" => \$dbpasswd,
       "dbgrants" => \$dbgrants,
@@ -326,6 +354,10 @@ my $result = GetOptions (
 
 $config  = decode_json path($configfile)->slurp;
 
+if( $cibaseurl ne "" )
+{
+  ${$config}{'cibaseurl'} = $cibaseurl;
+}
 if( $dbname ne "" )
 {
   ${$config}{'db-name'} = $dbname;

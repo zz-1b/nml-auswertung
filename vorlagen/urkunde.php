@@ -11,7 +11,7 @@ function output_pdf($file)
     readfile($file);
 }
 
-function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $laufergebnisse, $ausgabe)
+function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $laufergebnisse, $ausgabe, $print)
 {
   try
   {
@@ -22,7 +22,9 @@ function erzeugeUrkunde($name, $verein, $zeit, $platz, $ak, $akplatz, $bonus, $l
           $y=$oben;
           $pdf = new FPDF('P','mm','A4');
           $pdf->AddPage();
-          $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde.jpg',5,5,200);
+	  if( $print==0 ) {
+            $pdf->Image('ERSETZEDEPLOYFOLDER/adm/Urkunde.jpg',5,5,200);
+	  }
           $pdf->SetFont('Arial','B',32);
           $pdf->SetXY($linksrand,$y);
           $pdf->MultiCell(160,16,utf8_decode($platz).". Platz",0,'C');

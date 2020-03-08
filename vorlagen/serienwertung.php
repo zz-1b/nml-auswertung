@@ -64,15 +64,15 @@
 		echo " Erstmeldedatum heraussuchen <p>";
 		flush();
 
-		$em1 = $this->dbh->exec('CREATE TEMPORARY TABLE erstmeldungen 
-AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung 
- FROM ergebnisse e, letztedatensaetze d, veranstaltungen v, serienteilnehmer s 
- WHERE v.veranstaltungsid=d.veranstaltungsid 
-  AND d.datensatzid=e.datensatzid 
-  AND e.vorname=s.vorname 
-  AND e.nachname=s.nachname 
-  AND e.jahrgang=s.jahrgang 
-  AND e.ordnungsnr=s.ordnungsnr 
+		$em1 = $this->dbh->exec('CREATE TEMPORARY TABLE erstmeldungen
+AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
+ FROM ergebnisse e, letztedatensaetze d, veranstaltungen v, serienteilnehmer s
+ WHERE v.veranstaltungsid=d.veranstaltungsid
+  AND d.datensatzid=e.datensatzid
+  AND e.vorname=s.vorname
+  AND e.nachname=s.nachname
+  AND e.jahrgang=s.jahrgang
+  AND e.ordnungsnr=s.ordnungsnr
   AND e.serienteilnahme=1 GROUP BY s.tnid');
 
 		$em2 = $this->dbh->exec('UPDATE serienteilnehmer s, erstmeldungen m SET s.erstmeldung = m.erstmeldung WHERE s.tnid = m.tnid');
@@ -125,7 +125,7 @@ AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
       AND t.geschlecht=e.geschlecht
       AND d.datensatzid=e.datensatzid
       AND v.veranstaltungsid=d.veranstaltungsid
-      AND t.erstmeldung<=v.zeit 
+      AND t.erstmeldung<=v.zeit
      ORDER BY t.tnid, zeit ASC;');
 
 		echo "Serienwertung:<br>\n";
@@ -323,12 +323,16 @@ AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
 		$zeile.="<th>Serienwertung</th>\n";
 
 		$zeilekurz='<th>Platz</th><th>Name</th><th>Verein</th><th>Serien<br>wertung</th>\n';
+
+		$zeileb3='<th>Platz</th><th>Geschlecht</th><th>Name</th>\n';
 		$this->dbh->exec('DELETE FROM serienauswertungen WHERE serienid='.$this->serienid);
 
 		$this->dbh->exec('INSERT INTO serienauswertungen (serienid, format, htmlhead)
                       VALUES ('.$this->serienid.',0 , \''.$zeile.'\');');
 		$this->dbh->exec('INSERT INTO serienauswertungen (serienid, format, htmlhead)
                      VALUES ('.$this->serienid.',1 ,\''.$zeilekurz.'\');');
+		$this->dbh->exec('INSERT INTO serienauswertungen (serienid, format, htmlhead)
+                     VALUES ('.$this->serienid.',2 ,\''.$zeileb3.'\');');
 
 
 		$this->dbh->exec('DELETE FROM serienwebergebnisse WHERE serienid='.$this->serienid);
@@ -349,7 +353,7 @@ AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
 		$veranstaltungsanzahl_row = $this->dbh->query("SELECT count(veranstaltungsid) FROM veranstaltungen")->fetch();
 		$urkunden_min_laufdatensaetze = $veranstaltungsanzahl_row['count(veranstaltungsid)'];
 		$urkunden_min_teilnahmen = 4;
-		# Urkunden als Dateien ablegen oder just in time erzeugen ?
+		# Urkunden als Dateien ablegen(0) oder just in time erzeugen(1) ?
 		$onlineurkunden = 1;
 
 		echo "Min. ".$urkunden_min_laufdatensaetze." für Urkundenausgabe.<br>\n";
@@ -408,8 +412,20 @@ AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
 		    $sthw->execute(array('tnid' => $tnid,
 					 'serienid' => $this->serienid,
 					 'format'=> 1,
-					 'htmlrow' => $zeilekurz));
-		    if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
+	                                 'htmlrow' => $zeilekurz));
+		    #		    if($teilnehmer['teilnahmen']>=$urkunden_min_teilnahmen && $laufdatensaetze>=$urkunden_min_laufdatensaetze) {
+  		    if(1==1) {
+
+			if( $teilnehmer["mwplatz"]<=3 )
+			{
+
+			    $zeileb3="<td>".$teilnehmer["mwplatz"].".</td><td>".$teilnehmer["geschlecht"]."</td><td><a href=\"onlineurkunde.php?print=1&tnid=".$tnid."&serienid=".$this->serienid."\">".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]."</a></td>";
+			    $sthw->execute(array('tnid' => $tnid,
+						 'serienid' => $this->serienid,
+						 'format'=> 2,
+						 'htmlrow' => $zeileb3));
+			}
+			
 			echo "Erzeuge Urkunde für TN ".$tnid
 			    ." ".$teilnehmer["vorname"]." ".$teilnehmer["nachname"]
 			    ."V ".$teilnehmer["verein"]

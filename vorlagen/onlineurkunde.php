@@ -13,6 +13,9 @@
 
     $tnid = cleanint($_GET['tnid']);
     $serienid = cleanint($_GET['serienid']);
+    $print = cleanint($_GET['print']);
+
+    if($print!=1) { $print=0; }
 
     try {  # Verbindungsfehler fangen
         $dbh = new PDO('mysql:host=localhost;dbname=ERSETZEDBNAME', 'ERSETZEDBUSER', 'ERSETZEDBPASSWD');
@@ -53,12 +56,12 @@
                 $titelnb = preg_replace("/<br>/"," ",preg_replace("/-<br>/","-",$row["titel"]));
                 $laufergebnisse[$titelnb] = $row['zeit'];
             }
-            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-".$tnid.".pdf";
+            $ort = "ERSETZEDEPLOYFOLDER/nml-urkunden/Urkunde-Nord-Muensterland-ERSETZEJAHR-".$print."-".$tnid.".pdf";
 
             erzeugeUrkunde($tnres['vorname']." ".$tnres['nachname'],
                 $tnres['verein'], $elres['serienzeit'], $elres['mwplatz'],
                 $tnres['altersklasse'], $elres['altersklassenplatz'],
-                substr($elres['bonuszeit'],3), $laufergebnisse, $ort);
+                substr($elres['bonuszeit'],3), $laufergebnisse, $ort, $print);
 
             } catch (Exception $e) {
             echo "Failed: " . $e->getMessage();
