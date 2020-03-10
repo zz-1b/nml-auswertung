@@ -115,6 +115,18 @@ class ErgebnisTabelle
 			    'serienteilnahme' => intval($serienteilnahme))
 	);
     }
+    public function mail($omail)
+    {
+	# orga-Mails verschicken
+        $header='MIME-Version: 1.0' . "\r\n";
+        $header.='Content-type: text/html; charset=utf-8' . "\r\n";
+        $header.='From:nicht-antworten@nord-muensterland.de'."\r\n";
+		
+	$sqlmail="SELECT email from orgamail;";
+        foreach( $this->dbh->query($sqlmail) as $rowto ) {
+	  mail($rowto['email'], 'Neue Ergebnisse in der Laufserienwertung', $omail, $header);
+	}
+    }
 
     public function schreibeErgebnisse()
     {

@@ -8,6 +8,12 @@ $uploaddir = 'ERSETZEUPLOADFOLDER';
 $uploadfile = $uploaddir.$benutzer."-".uniqid()."-".basename($_FILES['userfile']['name']);
 $streckenid = intval($_POST['STRECKENID']);
 
+# orga-Mails verschicken
+$header='MIME-Version: 1.0' . "\r\n";
+$header.='Content-type: text/html; charset=utf-8' . "\r\n";
+$header.='From:nicht-antworten@nord-muensterland.de'."\r\n";
+$sqlmail="SELECT email from orgamail;";
+
 if(!isset($_POST['tnbedingungen']) || $_POST['tnbedingungen'] != 'on')
 {
     echo '<h1>Abgebrochen!</h1><b>Ohne die Zusicherung der Zustimmung zu den Teilnahmebedingungen und der Richtigkeit der Daten kann die Tabelle
@@ -66,7 +72,7 @@ else
 			}
 			if(isset($parserfehler))
 			{
-			   throw $parserfehler;
+			    throw $parserfehler;
 			}
 			$ergebnis->schreibeErgebnisse();
 			echo "Die Ergebnisse ( ".$zeilenzahl." Zeilen ) sind erfolgreich gespeichert.<p>\n";
@@ -75,6 +81,9 @@ else
 			$wertung = new SerienWertung();
 			$wertung->HTMLAUswertung();
 
+			$omail="Die Serienwertung ist neu berechnet mit Ergebnissen hochgeladen von ".$_SERVER['PHP_AUTH_USER'].".";
+			$ergebnis->mail($omail);
+			
 			#echo ' <a href="./werteAus.php">Auswertung berechnen</a><p>';
 			echo ' <a href="./uebersicht.php">Zur Übersicht</a><p>';
 		    }
@@ -86,6 +95,8 @@ else
 		    echo "\n<b>Der Ergebnisimport hat nicht funktioniert!</b>\n";
 		    echo "Fehler beim Import in der Zeile: ".$zeile." ". $e->getMessage()."\n";
 		    echo "Bitte die Daten bzw das Dateiformat prüfen, korrigieren und neu hochladen.\n";
+		    $omail="Beim Hochladen der Ergebnisse durch ".$_SERVER['PHP_AUTH_USER']." sind Fehler aufgetreten: ".$e->getMessage()."\n";
+		    $ergebnis->mail($omail);
 		    die();
 		    $dbh = null;
 		}
