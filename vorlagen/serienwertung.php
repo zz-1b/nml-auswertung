@@ -33,6 +33,32 @@
 		flush();
 		ob_flush();
 
+
+		# eingabedaten mit korrekturen
+		$fr = $this->dbh->exec(
+		    'CREATE TEMPORARY TABLE kergebnisse AS
+                       SELECT e.* from ergebnisse e, letztedatensaetze l
+		       WHERE e.datensatzid=l.datensatzid'
+		);
+
+		echo $fr." gefilterte Ergebnisse <p>\n";
+		flush();
+		ob_flush();
+
+
+		$this->dbh->exec(
+		    'UPDATE kergebnisse e, korrekturen k
+                     SET e.vorname=COALESCE(k.vornamekorrigiert,e.vorname),
+                         e.nachname=COALESCE(k.nachnamekorrigiert, e.nachname),
+                         e.geschlecht=COALESCE(k.geschlechtkorrigiert, e.geschlecht),
+                         e.verein=COALESCE(k.vereinkorrigiert,e.verein)
+		     WHERE e.vorname=k.vorname
+                       AND e.nachname=k.nachname
+                       AND e.geschlecht=k.geschlecht
+                       AND e.ordnungsnr=k.ordnungsnr'
+		);
+
+		
 		echo "Ermittelung der Serienteilnehmer...<br>";
 		flush();
 
@@ -41,7 +67,7 @@
 		$teilnehmer = $this->dbh->exec(
 		    'INSERT INTO serienteilnehmer(serienid, vorname, nachname, jahrgang, geschlecht, ordnungsnr, teilnahmen )
       SELECT DISTINCT '.$this->serienid.',e.vorname, e.nachname, e.jahrgang, e.geschlecht, e.ordnungsnr, 0
-      FROM ergebnisse e, ergebnisse e2
+      FROM kergebnisse e, kergebnisse e2
       WHERE     e.nachname=e2.nachname
             AND e.vorname=e2.vorname
             AND e.jahrgang=e2.jahrgang
@@ -54,7 +80,7 @@
 		echo $teilnehmer." Serienteilnehmer <p>";
 		flush();
 
-		$this->dbh->exec('UPDATE serienteilnehmer t, ergebnisse e
+		$this->dbh->exec('UPDATE serienteilnehmer t, kergebnisse e
  SET t.verein=e.verein
  WHERE t.vorname=e.vorname
    AND t.nachname=e.nachname
@@ -66,7 +92,7 @@
 
 		$em1 = $this->dbh->exec('CREATE TEMPORARY TABLE erstmeldungen
 AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
- FROM ergebnisse e, letztedatensaetze d, veranstaltungen v, serienteilnehmer s
+ FROM kergebnisse e, letztedatensaetze d, veranstaltungen v, serienteilnehmer s
  WHERE v.veranstaltungsid=d.veranstaltungsid
   AND d.datensatzid=e.datensatzid
   AND e.vorname=s.vorname
@@ -118,7 +144,7 @@ AS SELECT s.tnid, MIN(v.zeit) AS erstmeldung
 		$this->dbh->exec(
 		    'CREATE TEMPORARY TABLE serieneinzelraenge AS
      SELECT t.tnid, d.datensatzid, e.zeit
-     FROM serienteilnehmer t, letztedatensaetze d, ergebnisse e, veranstaltungen v
+     FROM serienteilnehmer t, letztedatensaetze d, kergebnisse e, veranstaltungen v
      WHERE t.nachname=e.nachname
       AND t.vorname=e.vorname
       AND t.jahrgang=e.jahrgang
