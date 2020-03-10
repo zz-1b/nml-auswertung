@@ -35,15 +35,15 @@ DEPLOYTO=www-data@webserver.provider.net:/server/html/nml-auswertung
 ```
 
 ### Eingabeformat ###
-Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w)und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Semikolon oder Komma als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden. Umlaute und Sonderzeichen sollen nach ISO-8859-1 kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. Wenn die 'Region und Sprache'-Einstellung auf 'Deutschland' steht, erhält man automatisch die richtige Zeichenkodierung und das Semikolon als Feldtrenner.
+Die Ergebnislisten müssen mindestens die Spalten Vorname, Nachname, Jahrgang(vierstellig), Geschlecht(als m/w), Serienteilnahme (0/1 oder j/n) und die Zeit(hh:mm:ss) in beliebiger Reihenfolge enthalten. Die Dateien müssen im CSV-Format mit Semikolon oder Komma als Feldtrenner und Anführungszeichen als Feldbegrenzer hochgeladen werden. Umlaute und Sonderzeichen sollen nach ISO-8859-1 kodiert sein. Excel-Dateien lassen sich mit "Speichern Unter" und Dateiformatauswahl 'CSV' konvertieren. Wenn die 'Region und Sprache'-Einstellung auf 'Deutschland' steht, erhält man automatisch die richtige Zeichenkodierung und das Semikolon als Feldtrenner.
 ![alt text](CSVspeichern.png "Logo Title Text 1")
 
 Eine Beispieldatei:
 ```
-"Nachname","Vorname","Jahrgang","Geschlecht","Verein","Zeit"
-"Friedrich","Wanda","1996","w","SuS Neunkirchen","0:42:25"
-"Krüger","Günther","1991","m","Bergziegen","0:39:51"
-"Geuker","Kurt","1996","m","TuS Altenberge","0:47:28"
+"Nachname","Vorname","Jahrgang","Geschlecht","Verein","Serienteilnahme","Zeit"
+"Friedrich","Wanda","1996","w","SuS Neunkirchen","0","0:42:25"
+"Krüger","Günther","1991","m","Bergziegen","1","0:39:51"
+"Geuker","Kurt","1996","m","TuS Altenberge","1","0:47:28"
 ```
 
 Das Formular zum Hochladen der Ergebnisse wird unter "adm/ergebnissehochladen.php" abgelegt.
